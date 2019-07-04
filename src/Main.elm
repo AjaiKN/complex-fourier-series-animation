@@ -6,7 +6,7 @@ import Complex exposing (..)
 import Dict exposing (Dict)
 import Html exposing (Html, div, input, label, span, text)
 import Html.Attributes exposing (class, step, type_, value)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onClick, onInput)
 import Svg exposing (Svg, circle, line, rect, svg)
 import Svg.Attributes exposing (cx, cy, fill, height, r, stroke, width, x, x1, x2, y, y1, y2)
 import Time
@@ -61,8 +61,8 @@ stepFunction t =
         real -1
 
 
-cosFunction2D : Float -> Complex
-cosFunction2D t =
+sinFunction2D : Float -> Complex
+sinFunction2D t =
     complex
         (t * 4 - 2)
         (t * 3 |> turns |> sin)
@@ -74,7 +74,7 @@ theFunction t1 =
         t =
             t1 - toFloat (floor t1)
     in
-    cosFunction2D t
+    cosFunction t
 
 
 myRange : Array Float
@@ -166,12 +166,13 @@ type alias Model =
     , speed : String
     , numVectors : String
     , zoom : String
+    , followFinalPoint : Bool
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model -100 0 (floatToStr 8) "40" "2", Cmd.none )
+    ( Model -100 0 (floatToStr 8) "40" "2" False, Cmd.none )
 
 
 
@@ -184,6 +185,7 @@ type Msg
     | Speed String
     | NumVectors String
     | Zoom String
+    | ToggleFollowFinalPoint
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -214,6 +216,11 @@ update msg model =
             , Cmd.none
             )
 
+        ToggleFollowFinalPoint ->
+            ( { model | followFinalPoint = not model.followFinalPoint }
+            , Cmd.none
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -239,11 +246,20 @@ viewInputs model =
         [ numInput Speed model.speed "Speed (cycles per minute)" "any"
         , numInput NumVectors model.numVectors "Number of spinning vectors" "1"
         , numInput Zoom model.zoom "Zoom" "any"
+        , checkbox ToggleFollowFinalPoint "Follow final point"
+        ]
+
+
+checkbox : msg -> String -> Html msg
+checkbox changer lab =
+    divClass "form-check"
+        [ input [ class "form-check-input", type_ "checkbox", value "", onClick changer ] []
+        , label [ class "form-check-label" ] [ text lab ]
         ]
 
 
 viewAnimation : Model -> Html Msg
-viewAnimation ({ sinceStart } as model) =
+viewAnimation ({ sinceStart, followFinalPoint } as model) =
     let
         time =
             toFloat sinceStart / 1000 / 60 * speed
@@ -253,11 +269,24 @@ viewAnimation ({ sinceStart } as model) =
 
         final =
             numVectors - 1
+
+        finalPoint =
+            sumToTerm theFunction (final + 1) time
+
+        offset =
+            if followFinalPoint then
+                finalPoint
+
+            else
+                zero
+
+        offsetCartesian =
+            toCartesian offset
     in
     svg [ width "900", height "900" ] <|
         rect
-            [ x (coordTransform zoom -1)
-            , y (coordTransform zoom -1)
+            [ x (coordTransform offsetCartesian.re zoom -1)
+            , y (coordTransform offsetCartesian.im zoom -1)
             , width (distTransform zoom 2)
             , height (distTransform zoom 2)
             , stroke "green"
@@ -278,26 +307,30 @@ viewAnimation ({ sinceStart } as model) =
 
                     else
                         [ makeLine
+                            offset
                             current
                             (sumToTerm theFunction (n + 1) time)
                             zoom
-                        , makeCircle current distanceToNext "red" "none" zoom
-                        , makeCircle current 0.015 "none" "blue" zoom
+                        , makeCircle offset current distanceToNext "red" "none" zoom
+                        , makeCircle offset current 0.015 "none" "blue" zoom
                         ]
                 )
                 (List.range 0 final)
-            ++ [ makeCircle (sumToTerm theFunction (final + 1) time) 0.03 "none" "green" zoom ]
+            ++ [ makeCircle offset finalPoint 0.03 "none" "green" zoom ]
 
 
-makeCircle : Complex -> Float -> String -> String -> Float -> Svg Msg
-makeCircle a radius color f zoom =
+makeCircle : Complex -> Complex -> Float -> String -> String -> Float -> Svg Msg
+makeCircle offset a radius color f zoom =
     let
         c =
             toCartesian a
+
+        offsetCartesian =
+            toCartesian offset
     in
     circle
-        [ cx (coordTransform zoom c.re)
-        , cy (coordTransform zoom c.im)
+        [ cx (coordTransform offsetCartesian.re zoom c.re)
+        , cy (coordTransform offsetCartesian.im zoom c.im)
         , r (distTransform zoom radius)
         , stroke color
         , fill f
@@ -305,28 +338,31 @@ makeCircle a radius color f zoom =
         []
 
 
-makeLine : Complex -> Complex -> Float -> Svg Msg
-makeLine a1 a2 zoom =
+makeLine : Complex -> Complex -> Complex -> Float -> Svg Msg
+makeLine offset a1 a2 zoom =
     let
         c1 =
             toCartesian a1
 
         c2 =
             toCartesian a2
+
+        offsetCartesian =
+            toCartesian offset
     in
     line
-        [ x1 (coordTransform zoom c1.re)
-        , y1 (coordTransform zoom c1.im)
-        , x2 (coordTransform zoom c2.re)
-        , y2 (coordTransform zoom c2.im)
+        [ x1 (coordTransform offsetCartesian.re zoom c1.re)
+        , y1 (coordTransform offsetCartesian.im zoom c1.im)
+        , x2 (coordTransform offsetCartesian.re zoom c2.re)
+        , y2 (coordTransform offsetCartesian.im zoom c2.im)
         , stroke "red"
         ]
         []
 
 
-coordTransform : Float -> Float -> String
-coordTransform zoom f =
-    String.fromFloat ((f + zoom) * 100 / zoom / 2) ++ "%"
+coordTransform : Float -> Float -> Float -> String
+coordTransform offset zoom f =
+    String.fromFloat ((f + zoom - offset) * 100 / zoom / 2) ++ "%"
 
 
 distTransform : Float -> Float -> String
