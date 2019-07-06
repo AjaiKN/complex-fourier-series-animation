@@ -9,6 +9,7 @@ import Html.Attributes exposing (class, step, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Svg exposing (Svg, circle, line, rect, svg)
 import Svg.Attributes exposing (cx, cy, fill, height, r, stroke, width, x, x1, x2, y, y1, y2)
+import Task
 import Time
 
 
@@ -114,7 +115,7 @@ memoize f vals =
 
 constantNMemoized : Int -> Complex
 constantNMemoized =
-    memoize (constantN theFunction) (List.range -300 300)
+    memoize (constantN theFunction) (List.range -200 200)
 
 
 term : (Float -> Complex) -> Int -> Float -> Complex
@@ -172,7 +173,9 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model -100 0 (floatToStr 8) "40" "2" False, Cmd.none )
+    ( Model -100 0 (floatToStr 8) "40" "2" False
+    , Task.perform InitialTime Time.now
+    )
 
 
 
