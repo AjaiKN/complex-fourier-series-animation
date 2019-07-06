@@ -74,7 +74,7 @@ theFunction t1 =
         t =
             t1 - toFloat (floor t1)
     in
-    cosFunction t
+    sinFunction2D t
 
 
 myRange : Array Float
@@ -114,7 +114,7 @@ memoize f vals =
 
 constantNMemoized : Int -> Complex
 constantNMemoized =
-    memoize (constantN theFunction) (List.range -30 30)
+    memoize (constantN theFunction) (List.range -300 300)
 
 
 term : (Float -> Complex) -> Int -> Float -> Complex
@@ -312,11 +312,11 @@ viewAnimation ({ sinceStart, followFinalPoint } as model) =
                             (sumToTerm theFunction (n + 1) time)
                             zoom
                         , makeCircle offset current distanceToNext "red" "none" zoom
-                        , makeCircle offset current 0.015 "none" "blue" zoom
+                        , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
                         ]
                 )
                 (List.range 0 final)
-            ++ [ makeCircle offset finalPoint 0.03 "none" "green" zoom ]
+            ++ [ makeCircle offset finalPoint (0.03 / 1.5 * zoom) "none" "green" zoom ]
 
 
 makeCircle : Complex -> Complex -> Float -> String -> String -> Float -> Svg Msg
@@ -435,7 +435,7 @@ getOptions : Model -> Options
 getOptions { speed, numVectors, zoom } =
     { speed = strToFloat speed
     , numVectors =
-        if strToInt numVectors < 80 && strToInt numVectors >= 0 then
+        if strToInt numVectors < 400 && strToInt numVectors >= 0 then
             strToInt numVectors
 
         else
