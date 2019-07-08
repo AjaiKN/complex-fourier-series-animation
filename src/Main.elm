@@ -7,6 +7,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, div, input, label, span, text)
 import Html.Attributes exposing (class, step, type_, value)
 import Html.Events exposing (onClick, onInput)
+import Html.Lazy exposing (lazy)
 import Svg exposing (Svg, circle, line, rect, svg)
 import Svg.Attributes exposing (cx, cy, fill, height, r, stroke, width, x, x1, x2, y, y1, y2)
 import Task
@@ -75,7 +76,7 @@ theFunction t1 =
         t =
             t1 - toFloat (floor t1)
     in
-    sinFunction2D t
+    stepFunction t
 
 
 myRange : Array Float
@@ -240,7 +241,7 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [] [ viewInputs model, viewAnimation model ]
+    div [] [ lazy viewInputs model, viewAnimation model ]
 
 
 viewInputs : Model -> Html Msg
