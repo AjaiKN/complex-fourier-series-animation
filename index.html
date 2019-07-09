@@ -6358,15 +6358,6 @@ var elm$core$Basics$modBy = _Basics_modBy;
 var author$project$Main$backAndForthTermNum = function (n) {
 	return (!A2(elm$core$Basics$modBy, 2, n)) ? ((n / 2) | 0) : (-(((n / 2) | 0) + 1));
 };
-var elm$core$String$fromFloat = _String_fromNumber;
-var author$project$Main$coordTransform = F3(
-	function (offset, zoom, _float) {
-		return elm$core$String$fromFloat(((((_float + zoom) - offset) * 100) / zoom) / 2);
-	});
-var author$project$Main$distTransform = F2(
-	function (zoom, _float) {
-		return elm$core$String$fromFloat(((_float * 100) / zoom) / 2);
-	});
 var elm$core$String$toFloat = _String_toFloat;
 var author$project$Main$strToFloat = function (s) {
 	var _n0 = elm$core$String$toFloat(s);
@@ -6398,6 +6389,15 @@ var author$project$Main$getOptions = function (_n0) {
 		zoom: author$project$Main$strToFloat(zoom)
 	};
 };
+var elm$core$String$fromFloat = _String_fromNumber;
+var author$project$Main$coordTransform = F3(
+	function (offset, zoom, _float) {
+		return elm$core$String$fromFloat(((((_float + zoom) - offset) * 100) / zoom) / 2);
+	});
+var author$project$Main$distTransform = F2(
+	function (zoom, _float) {
+		return elm$core$String$fromFloat(((_float * 100) / zoom) / 2);
+	});
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
@@ -6580,13 +6580,10 @@ var elm$virtual_dom$VirtualDom$lazy3 = _VirtualDom_lazy3;
 var elm$html$Html$Lazy$lazy3 = elm$virtual_dom$VirtualDom$lazy3;
 var elm$virtual_dom$VirtualDom$lazy4 = _VirtualDom_lazy4;
 var elm$html$Html$Lazy$lazy4 = elm$virtual_dom$VirtualDom$lazy4;
-var elm$svg$Svg$rect = elm$svg$Svg$trustedNode('rect');
 var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
 var elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
-var elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
 var elm$core$Basics$atan2 = _Basics_atan2;
 var elm$core$Basics$sqrt = _Basics_sqrt;
 var harrysarson$elm_complex$Internal$Complex$polarInfinity = {abs: 1 / 0, arg: 0 / 0};
@@ -6630,54 +6627,36 @@ var author$project$Main$viewAnimation = function (model) {
 				elm$svg$Svg$Attributes$height('900'),
 				elm$svg$Svg$Attributes$viewBox('0 0 100 100')
 			]),
-		A2(
-			elm$core$List$cons,
+		_Utils_ap(
 			A2(
-				elm$svg$Svg$rect,
-				_List_fromArray(
-					[
-						elm$svg$Svg$Attributes$x(
-						A3(author$project$Main$coordTransform, offsetCartesian.re, zoom, -1)),
-						elm$svg$Svg$Attributes$y(
-						A3(author$project$Main$coordTransform, offsetCartesian.im, zoom, -1)),
-						elm$svg$Svg$Attributes$width(
-						A2(author$project$Main$distTransform, zoom, 2)),
-						elm$svg$Svg$Attributes$height(
-						A2(author$project$Main$distTransform, zoom, 2)),
-						elm$svg$Svg$Attributes$fill('none'),
-						elm$svg$Svg$Attributes$strokeWidth('0.2')
-					]),
-				_List_Nil),
-			_Utils_ap(
-				A2(
-					elm$core$List$concatMap,
-					function (n) {
-						var distanceToNext = harrysarson$elm_complex$Complex$toPolar(
-							A3(
-								author$project$Main$term,
-								constantsDict,
-								author$project$Main$backAndForthTermNum(n + 1),
-								time)).abs;
-						var current = A3(author$project$Main$sumToTerm, constantsDict, n, time);
-						return (distanceToNext < 1.0e-4) ? _List_Nil : _List_fromArray(
-							[
-								A4(
-								author$project$Main$makeLine,
-								offset,
-								current,
-								A3(author$project$Main$sumToTerm, constantsDict, n + 1, time),
-								zoom),
-								A6(author$project$Main$makeCircle, offset, current, distanceToNext, 'red', 'none', zoom),
-								A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 1.5) * zoom, 'none', 'blue', zoom)
-							]);
-					},
-					A2(elm$core$List$range, 0, _final)),
-				_List_fromArray(
-					[
-						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 1.5) * zoom, 'none', 'green', zoom),
-						A4(elm$html$Html$Lazy$lazy3, author$project$Main$plotIntendedFunction, offset, zoom, functionName),
-						A5(elm$html$Html$Lazy$lazy4, author$project$Main$plotEstimatedFunction, offset, zoom, constantsDict, _final)
-					]))));
+				elm$core$List$concatMap,
+				function (n) {
+					var distanceToNext = harrysarson$elm_complex$Complex$toPolar(
+						A3(
+							author$project$Main$term,
+							constantsDict,
+							author$project$Main$backAndForthTermNum(n + 1),
+							time)).abs;
+					var current = A3(author$project$Main$sumToTerm, constantsDict, n, time);
+					return (distanceToNext < 1.0e-4) ? _List_Nil : _List_fromArray(
+						[
+							A4(
+							author$project$Main$makeLine,
+							offset,
+							current,
+							A3(author$project$Main$sumToTerm, constantsDict, n + 1, time),
+							zoom),
+							A6(author$project$Main$makeCircle, offset, current, distanceToNext, 'red', 'none', zoom),
+							A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 1.5) * zoom, 'none', 'blue', zoom)
+						]);
+				},
+				A2(elm$core$List$range, 0, _final)),
+			_List_fromArray(
+				[
+					A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 1.5) * zoom, 'none', 'green', zoom),
+					A4(elm$html$Html$Lazy$lazy3, author$project$Main$plotIntendedFunction, offset, zoom, functionName),
+					A5(elm$html$Html$Lazy$lazy4, author$project$Main$plotEstimatedFunction, offset, zoom, constantsDict, _final)
+				])));
 };
 var author$project$Main$NumVectors = function (a) {
 	return {$: 'NumVectors', a: a};

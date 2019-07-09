@@ -321,40 +321,29 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
             toCartesian offset
     in
     svg [ width "900", height "900", viewBox "0 0 100 100" ] <|
-        rect
-            [ x (coordTransform offsetCartesian.re zoom -1)
-            , y (coordTransform offsetCartesian.im zoom -1)
-            , width (distTransform zoom 2)
-            , height (distTransform zoom 2)
+        List.concatMap
+            (\n ->
+                let
+                    current =
+                        sumToTerm constantsDict n time
 
-            --, stroke "green"
-            , fill "none"
-            , strokeWidth "0.2"
-            ]
-            []
-            :: List.concatMap
-                (\n ->
-                    let
-                        current =
-                            sumToTerm constantsDict n time
+                    distanceToNext =
+                        (Complex.toPolar (term constantsDict (backAndForthTermNum (n + 1)) time)).abs
+                in
+                if distanceToNext < 0.0001 then
+                    []
 
-                        distanceToNext =
-                            (Complex.toPolar (term constantsDict (backAndForthTermNum (n + 1)) time)).abs
-                    in
-                    if distanceToNext < 0.0001 then
-                        []
-
-                    else
-                        [ makeLine
-                            offset
-                            current
-                            (sumToTerm constantsDict (n + 1) time)
-                            zoom
-                        , makeCircle offset current distanceToNext "red" "none" zoom
-                        , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
-                        ]
-                )
-                (List.range 0 final)
+                else
+                    [ makeLine
+                        offset
+                        current
+                        (sumToTerm constantsDict (n + 1) time)
+                        zoom
+                    , makeCircle offset current distanceToNext "red" "none" zoom
+                    , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
+                    ]
+            )
+            (List.range 0 final)
             ++ [ makeCircle offset finalPoint (0.03 / 1.5 * zoom) "none" "green" zoom
                , Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
                , Html.Lazy.lazy4 plotEstimatedFunction offset zoom constantsDict final
