@@ -242,18 +242,18 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ Html.Lazy.lazy viewInputs model
+        [ Html.Lazy.lazy3 viewInputs model.speed model.numVectors model.zoom
         , viewAnimation model
         ]
 
 
-viewInputs : Model -> Html Msg
-viewInputs model =
+viewInputs : String -> String -> String -> Html Msg
+viewInputs speed numVectors zoom =
     div []
         [ functionDropdown
-        , numInput Speed model.speed "Speed (cycles per minute)" "any"
-        , numInput NumVectors model.numVectors "Number of spinning vectors (max = 100)" "1"
-        , numInput Zoom model.zoom "Zoom" "any"
+        , numInput Speed speed "Speed (cycles per minute)" "any"
+        , numInput NumVectors numVectors "Number of spinning vectors (max = 100)" "1"
+        , numInput Zoom zoom "Zoom" "any"
         , checkbox ToggleFollowFinalPoint "Follow final point"
         ]
 
@@ -341,8 +341,8 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
                 )
                 (List.range 0 final)
             ++ [ makeCircle offset finalPoint (0.03 / 1.5 * zoom) "none" "green" zoom
-               , Html.Lazy.lazy2 plotIntendedFunction ( offset, zoom ) functionName
-               , Html.Lazy.lazy3 plotEstimatedFunction ( offset, zoom ) constantsDict final
+               , Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
+               , Html.Lazy.lazy4 plotEstimatedFunction offset zoom constantsDict final
                ]
 
 
@@ -396,7 +396,7 @@ plotFunction color offset zoom function =
             toCartesian offset
 
         range =
-            List.map (toFloat >> (*) (1 / 100)) (List.range 0 100)
+            List.map (toFloat >> (*) (1 / 1000)) (List.range 0 1000)
 
         pts =
             List.map (function >> toCartesian) range
@@ -422,11 +422,11 @@ plotFunction color offset zoom function =
 --every frame.
 
 
-plotIntendedFunction ( offset, zoom ) functionName =
+plotIntendedFunction offset zoom functionName =
     plotFunction "green" offset zoom (getFunction functionName)
 
 
-plotEstimatedFunction ( offset, zoom ) constantsDict final =
+plotEstimatedFunction offset zoom constantsDict final =
     plotFunction "blue" offset zoom (sumToTerm constantsDict (final + 1))
 
 
