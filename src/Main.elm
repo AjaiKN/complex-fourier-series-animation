@@ -180,7 +180,7 @@ type Msg
     | NumVectors String
     | Zoom String
     | ToggleFollowFinalPoint
-    | ChangeFunction FunctionName
+    | ChangeFunction String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -216,7 +216,22 @@ update msg model =
             , Cmd.none
             )
 
-        ChangeFunction functionName ->
+        ChangeFunction str ->
+            let
+                functionName =
+                    case str of
+                        "SquareFunction" ->
+                            SquareFunction
+
+                        "CosFunction" ->
+                            CosFunction
+
+                        "SinFunction2D" ->
+                            SinFunction2D
+
+                        _ ->
+                            StepFunction
+            in
             ( { model
                 | sinceStart = 0
                 , functionName = functionName
@@ -271,11 +286,11 @@ functionDropdown =
     div []
         [ label [] [ text "Function: " ]
         , select
-            []
-            [ option [ onClick (ChangeFunction StepFunction) ] [ text "Step function" ]
-            , option [ onClick (ChangeFunction SquareFunction) ] [ text "Square function" ]
-            , option [ onClick (ChangeFunction CosFunction) ] [ text "cos(x)" ]
-            , option [ onClick (ChangeFunction SinFunction2D) ] [ text "x + i sin x" ]
+            [ onInput ChangeFunction ]
+            [ option [ value "StepFunction" ] [ text "Step function" ]
+            , option [ value "SquareFunction" ] [ text "Square function" ]
+            , option [ value "CosFunction" ] [ text "cos(x)" ]
+            , option [ value "SinFunction2D" ] [ text "x + i sin x" ]
             ]
         ]
 
