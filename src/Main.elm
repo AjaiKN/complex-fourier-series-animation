@@ -1,82 +1,74 @@
-module Main exposing (Model, Msg(..), average, backAndForthTermNum, constantN, coordTransform, distTransform, init, main, makeCircle, makeLine, myRange, squareIm, squareRe, subscriptions, sumToTerm, term, theFunction, update, view)
+module Main exposing (Model, Msg(..), average, backAndForthTermNum, constantN, coordTransform, distTransform, init, main, makeCircle, makeLine, myRange, subscriptions, sumToTerm, term, update, view)
 
 import Array exposing (Array)
 import Browser
 import Complex exposing (..)
 import Dict exposing (Dict)
-import Html exposing (Html, div, input, label, span, text)
+import Html exposing (Html, div, input, label, option, select, span, text)
 import Html.Attributes exposing (class, step, type_, value)
 import Html.Events exposing (onClick, onInput)
-import Html.Lazy exposing (lazy)
+import Html.Lazy
 import Svg exposing (Svg, circle, line, rect, svg)
 import Svg.Attributes exposing (cx, cy, fill, height, r, stroke, width, x, x1, x2, y, y1, y2)
 import Task
 import Time
 
 
-squareRe : Float -> Float
-squareRe t =
-    if t <= 0.25 then
-        1
-
-    else if t <= 0.5 then
-        3 - 8 * t
-
-    else if t <= 0.75 then
-        -1
-
-    else
-        -7 + 8 * t
+type FunctionName
+    = SquareFunction
+    | CosFunction
+    | SinFunction2D
+    | StepFunction
 
 
-squareIm : Float -> Float
-squareIm t =
-    if t <= 0.25 then
-        -1 + 8 * t
-
-    else if t <= 0.5 then
-        1
-
-    else if t <= 0.75 then
-        5 - 8 * t
-
-    else
-        -1
-
-
-squareFunction : Float -> Complex
-squareFunction t =
-    complex (squareRe t) (squareIm t)
-
-
-cosFunction : Float -> Complex
-cosFunction =
-    turns >> cos >> real
-
-
-stepFunction : Float -> Complex
-stepFunction t =
-    if t < 0.5 then
-        real 1
-
-    else
-        real -1
-
-
-sinFunction2D : Float -> Complex
-sinFunction2D t =
-    complex
-        (t * 4 - 2)
-        (t * 3 |> turns |> sin)
-
-
-theFunction : Float -> Complex
-theFunction t1 =
+getFunction : FunctionName -> Float -> Complex
+getFunction funName t1 =
     let
         t =
             t1 - toFloat (floor t1)
     in
-    stepFunction t
+    case funName of
+        SquareFunction ->
+            complex
+                (if t <= 0.25 then
+                    1
+
+                 else if t <= 0.5 then
+                    3 - 8 * t
+
+                 else if t <= 0.75 then
+                    -1
+
+                 else
+                    -7 + 8 * t
+                )
+                (if t <= 0.25 then
+                    -1 + 8 * t
+
+                 else if t <= 0.5 then
+                    1
+
+                 else if t <= 0.75 then
+                    5 - 8 * t
+
+                 else
+                    -1
+                )
+
+        CosFunction ->
+            t |> turns |> cos |> real
+
+        SinFunction2D ->
+            complex
+                (t * 4 - 2)
+                (t * 3 |> turns |> sin)
+
+        StepFunction ->
+            if t < 0.5 then
+                real 1
+
+            else
+                real -1
 
 
 myRange : Array Float
@@ -97,31 +89,15 @@ constantN f n =
             myRange
 
 
-memoize : (comparable -> b) -> List comparable -> comparable -> b
-memoize f vals =
-    let
-        dict : Dict comparable b
-        dict =
-            Dict.fromList <|
-                List.map (\n -> ( n, f n )) vals
-    in
-    \inp ->
-        case Dict.get inp dict of
-            Just n ->
-                n
-
-            Nothing ->
-                f inp
+getDict : FunctionName -> Dict Int Complex
+getDict funName =
+    Dict.fromList <|
+        List.map (\n -> ( n, constantN (getFunction funName) n )) (List.range -30 30)
 
 
-constantNMemoized : Int -> Complex
-constantNMemoized =
-    memoize (constantN theFunction) (List.range -200 200)
-
-
-term : (Float -> Complex) -> Int -> Float -> Complex
-term f n t =
-    multiply (constantNMemoized n) (exp (imaginary (2.0 * pi * toFloat n * t)))
+term : Dict Int Complex -> Int -> Float -> Complex
+term dict n t =
+    multiply (Dict.get n dict |> Maybe.withDefault zero) (exp (imaginary (2.0 * pi * toFloat n * t)))
 
 
 backAndForthTermNum : Int -> Int
@@ -134,12 +110,12 @@ backAndForthTermNum n =
         -(n // 2 + 1)
 
 
-sumToTerm : (Float -> Complex) -> Int -> Float -> Complex
-sumToTerm f n t =
+sumToTerm : Dict Int Complex -> Int -> Float -> Complex
+sumToTerm dict n t =
     List.foldl
         (\newN prevSum ->
             add prevSum <|
-                term f (backAndForthTermNum newN) t
+                term dict (backAndForthTermNum newN) t
         )
         zero
         (List.range 0 n)
@@ -169,12 +145,26 @@ type alias Model =
     , numVectors : String
     , zoom : String
     , followFinalPoint : Bool
+    , functionName : FunctionName
+    , constantsDict : Dict Int Complex
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model -100 0 (floatToStr 8) "40" "2" False
+    let
+        defaultFunction =
+            StepFunction
+    in
+    ( { originalTime = -100
+      , sinceStart = 0
+      , speed = "8"
+      , numVectors = "40"
+      , zoom = "2"
+      , followFinalPoint = False
+      , functionName = defaultFunction
+      , constantsDict = getDict defaultFunction
+      }
     , Task.perform InitialTime Time.now
     )
 
@@ -190,6 +180,7 @@ type Msg
     | NumVectors String
     | Zoom String
     | ToggleFollowFinalPoint
+    | ChangeFunction FunctionName
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -225,6 +216,15 @@ update msg model =
             , Cmd.none
             )
 
+        ChangeFunction functionName ->
+            ( { model
+                | sinceStart = 0
+                , functionName = functionName
+                , constantsDict = getDict functionName
+              }
+            , Task.perform InitialTime Time.now
+            )
+
 
 
 -- SUBSCRIPTIONS
@@ -241,13 +241,17 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [] [ lazy viewInputs model, viewAnimation model ]
+    div []
+        [ Html.Lazy.lazy viewInputs model
+        , viewAnimation model
+        ]
 
 
 viewInputs : Model -> Html Msg
 viewInputs model =
     div []
-        [ numInput Speed model.speed "Speed (cycles per minute)" "any"
+        [ functionDropdown
+        , numInput Speed model.speed "Speed (cycles per minute)" "any"
         , numInput NumVectors model.numVectors "Number of spinning vectors" "1"
         , numInput Zoom model.zoom "Zoom" "any"
         , checkbox ToggleFollowFinalPoint "Follow final point"
@@ -262,8 +266,22 @@ checkbox changer lab =
         ]
 
 
+functionDropdown : Html Msg
+functionDropdown =
+    div []
+        [ label [] [ text "Function: " ]
+        , select
+            []
+            [ option [ onClick (ChangeFunction StepFunction) ] [ text "Step function" ]
+            , option [ onClick (ChangeFunction SquareFunction) ] [ text "Square function" ]
+            , option [ onClick (ChangeFunction CosFunction) ] [ text "cos(x)" ]
+            , option [ onClick (ChangeFunction SinFunction2D) ] [ text "x + i sin x" ]
+            ]
+        ]
+
+
 viewAnimation : Model -> Html Msg
-viewAnimation ({ sinceStart, followFinalPoint } as model) =
+viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as model) =
     let
         time =
             toFloat sinceStart / 1000 / 60 * speed
@@ -275,7 +293,7 @@ viewAnimation ({ sinceStart, followFinalPoint } as model) =
             numVectors - 1
 
         finalPoint =
-            sumToTerm theFunction (final + 1) time
+            sumToTerm constantsDict (final + 1) time
 
         offset =
             if followFinalPoint then
@@ -301,10 +319,10 @@ viewAnimation ({ sinceStart, followFinalPoint } as model) =
                 (\n ->
                     let
                         current =
-                            sumToTerm theFunction n time
+                            sumToTerm constantsDict n time
 
                         distanceToNext =
-                            (Complex.toPolar (term theFunction (backAndForthTermNum (n + 1)) time)).abs
+                            (Complex.toPolar (term constantsDict (backAndForthTermNum (n + 1)) time)).abs
                     in
                     if distanceToNext < 0.0001 then
                         []
@@ -313,7 +331,7 @@ viewAnimation ({ sinceStart, followFinalPoint } as model) =
                         [ makeLine
                             offset
                             current
-                            (sumToTerm theFunction (n + 1) time)
+                            (sumToTerm constantsDict (n + 1) time)
                             zoom
                         , makeCircle offset current distanceToNext "red" "none" zoom
                         , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
