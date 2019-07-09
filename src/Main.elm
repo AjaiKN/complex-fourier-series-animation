@@ -252,7 +252,7 @@ viewInputs model =
     div []
         [ functionDropdown
         , numInput Speed model.speed "Speed (cycles per minute)" "any"
-        , numInput NumVectors model.numVectors "Number of spinning vectors" "1"
+        , numInput NumVectors model.numVectors "Number of spinning vectors (max = 100)" "1"
         , numInput Zoom model.zoom "Zoom" "any"
         , checkbox ToggleFollowFinalPoint "Follow final point"
         ]
@@ -508,7 +508,10 @@ getOptions { speed, numVectors, zoom } =
         if strToInt numVectors <= 100 && strToInt numVectors >= 0 then
             strToInt numVectors
 
-        else
+        else if strToInt numVectors > 100 then
             100
+
+        else
+            0
     , zoom = strToFloat zoom
     }

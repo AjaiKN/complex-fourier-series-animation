@@ -6378,7 +6378,7 @@ var author$project$Main$getOptions = function (_n0) {
 	var numVectors = _n0.numVectors;
 	var zoom = _n0.zoom;
 	return {
-		numVectors: ((author$project$Main$strToInt(numVectors) <= 100) && (author$project$Main$strToInt(numVectors) >= 0)) ? author$project$Main$strToInt(numVectors) : 100,
+		numVectors: ((author$project$Main$strToInt(numVectors) <= 100) && (author$project$Main$strToInt(numVectors) >= 0)) ? author$project$Main$strToInt(numVectors) : ((author$project$Main$strToInt(numVectors) > 100) ? 100 : 0),
 		speed: author$project$Main$strToFloat(speed),
 		zoom: author$project$Main$strToFloat(zoom)
 	};
@@ -6905,7 +6905,7 @@ var author$project$Main$viewInputs = function (model) {
 			[
 				author$project$Main$functionDropdown,
 				A4(author$project$Main$numInput, author$project$Main$Speed, model.speed, 'Speed (cycles per minute)', 'any'),
-				A4(author$project$Main$numInput, author$project$Main$NumVectors, model.numVectors, 'Number of spinning vectors', '1'),
+				A4(author$project$Main$numInput, author$project$Main$NumVectors, model.numVectors, 'Number of spinning vectors (max = 100)', '1'),
 				A4(author$project$Main$numInput, author$project$Main$Zoom, model.zoom, 'Zoom', 'any'),
 				A2(author$project$Main$checkbox, author$project$Main$ToggleFollowFinalPoint, 'Follow final point')
 			]));
