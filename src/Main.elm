@@ -92,7 +92,7 @@ constantN f n =
 getDict : FunctionName -> Dict Int Complex
 getDict funName =
     Dict.fromList <|
-        List.map (\n -> ( n, constantN (getFunction funName) n )) (List.range -30 30)
+        List.map (\n -> ( n, constantN (getFunction funName) n )) (List.range -50 50)
 
 
 term : Dict Int Complex -> Int -> Float -> Complex
@@ -341,7 +341,8 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
                 )
                 (List.range 0 final)
             ++ [ makeCircle offset finalPoint (0.03 / 1.5 * zoom) "none" "green" zoom
-               , drawIntendedShape offset zoom functionName
+               , Html.Lazy.lazy2 plotIntendedFunction ( offset, zoom ) functionName
+               , Html.Lazy.lazy3 plotEstimatedFunction ( offset, zoom ) constantsDict final
                ]
 
 
@@ -388,12 +389,9 @@ makeLine offset a1 a2 zoom =
         []
 
 
-drawIntendedShape : Complex -> Float -> FunctionName -> Svg msg
-drawIntendedShape offset zoom funName =
+plotFunction : String -> Complex -> Float -> (Float -> Complex) -> Svg msg
+plotFunction color offset zoom function =
     let
-        function =
-            getFunction funName
-
         offsetCartesian =
             toCartesian offset
 
@@ -415,7 +413,21 @@ drawIntendedShape offset zoom funName =
         pointsString =
             String.join " " pointsAsStrings
     in
-    polygon [ points pointsString, strokeWidth "0.2", stroke "green", fill "none" ] []
+    polygon [ points pointsString, strokeWidth "0.2", stroke color, fill "none" ] []
+
+
+
+--The plotIntendedFunction and plotEstimatedFunction functions are so that
+--we can use Html.Lazy so that we don't have to recalculate these polygons
+--every frame.
+
+
+plotIntendedFunction ( offset, zoom ) functionName =
+    plotFunction "green" offset zoom (getFunction functionName)
+
+
+plotEstimatedFunction ( offset, zoom ) constantsDict final =
+    plotFunction "blue" offset zoom (sumToTerm constantsDict (final + 1))
 
 
 coordTransform : Float -> Float -> Float -> String
@@ -493,10 +505,10 @@ getOptions : Model -> Options
 getOptions { speed, numVectors, zoom } =
     { speed = strToFloat speed
     , numVectors =
-        if strToInt numVectors < 400 && strToInt numVectors >= 0 then
+        if strToInt numVectors <= 100 && strToInt numVectors >= 0 then
             strToInt numVectors
 
         else
-            0
+            100
     , zoom = strToFloat zoom
     }

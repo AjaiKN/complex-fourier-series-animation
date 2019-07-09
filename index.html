@@ -5621,7 +5621,7 @@ var author$project$Main$getDict = function (funName) {
 						author$project$Main$getFunction(funName),
 						n));
 			},
-			A2(elm$core$List$range, -30, 30)));
+			A2(elm$core$List$range, -50, 50)));
 };
 var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$identity = function (x) {
@@ -6352,62 +6352,6 @@ var author$project$Main$distTransform = F2(
 	function (zoom, _float) {
 		return elm$core$String$fromFloat(((_float * 100) / zoom) / 2);
 	});
-var elm$json$Json$Decode$map = _Json_map1;
-var elm$json$Json$Decode$map2 = _Json_map2;
-var elm$json$Json$Decode$succeed = _Json_succeed;
-var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
-	switch (handler.$) {
-		case 'Normal':
-			return 0;
-		case 'MayStopPropagation':
-			return 1;
-		case 'MayPreventDefault':
-			return 2;
-		default:
-			return 3;
-	}
-};
-var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
-var elm$svg$Svg$polygon = elm$svg$Svg$trustedNode('polygon');
-var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
-var elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
-var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
-var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var author$project$Main$drawIntendedShape = F3(
-	function (offset, zoom, funName) {
-		var range = A2(
-			elm$core$List$map,
-			A2(
-				elm$core$Basics$composeR,
-				elm$core$Basics$toFloat,
-				elm$core$Basics$mul(1 / 100)),
-			A2(elm$core$List$range, 0, 100));
-		var offsetCartesian = harrysarson$elm_complex$Complex$toCartesian(offset);
-		var _function = author$project$Main$getFunction(funName);
-		var pts = A2(
-			elm$core$List$map,
-			A2(elm$core$Basics$composeR, _function, harrysarson$elm_complex$Complex$toCartesian),
-			range);
-		var pointsAsStrings = A2(
-			elm$core$List$map,
-			function (_n0) {
-				var re = _n0.re;
-				var im = _n0.im;
-				return A3(author$project$Main$coordTransform, offsetCartesian.re, zoom, re) + (',' + A3(author$project$Main$coordTransform, offsetCartesian.im, zoom, im));
-			},
-			pts);
-		var pointsString = A2(elm$core$String$join, ' ', pointsAsStrings);
-		return A2(
-			elm$svg$Svg$polygon,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$points(pointsString),
-					elm$svg$Svg$Attributes$strokeWidth('0.2'),
-					elm$svg$Svg$Attributes$stroke('green'),
-					elm$svg$Svg$Attributes$fill('none')
-				]),
-			_List_Nil);
-	});
 var elm$core$String$toFloat = _String_toFloat;
 var author$project$Main$strToFloat = function (s) {
 	var _n0 = elm$core$String$toFloat(s);
@@ -6434,15 +6378,34 @@ var author$project$Main$getOptions = function (_n0) {
 	var numVectors = _n0.numVectors;
 	var zoom = _n0.zoom;
 	return {
-		numVectors: ((author$project$Main$strToInt(numVectors) < 400) && (author$project$Main$strToInt(numVectors) >= 0)) ? author$project$Main$strToInt(numVectors) : 0,
+		numVectors: ((author$project$Main$strToInt(numVectors) <= 100) && (author$project$Main$strToInt(numVectors) >= 0)) ? author$project$Main$strToInt(numVectors) : 100,
 		speed: author$project$Main$strToFloat(speed),
 		zoom: author$project$Main$strToFloat(zoom)
 	};
 };
+var elm$json$Json$Decode$map = _Json_map1;
+var elm$json$Json$Decode$map2 = _Json_map2;
+var elm$json$Json$Decode$succeed = _Json_succeed;
+var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
+	switch (handler.$) {
+		case 'Normal':
+			return 0;
+		case 'MayStopPropagation':
+			return 1;
+		case 'MayPreventDefault':
+			return 2;
+		default:
+			return 3;
+	}
+};
+var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
 var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var author$project$Main$makeCircle = F6(
 	function (offset, a, radius, color, f, zoom) {
 		var offsetCartesian = harrysarson$elm_complex$Complex$toCartesian(offset);
@@ -6490,6 +6453,42 @@ var author$project$Main$makeLine = F4(
 				]),
 			_List_Nil);
 	});
+var elm$svg$Svg$polygon = elm$svg$Svg$trustedNode('polygon');
+var elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
+var author$project$Main$plotFunction = F4(
+	function (color, offset, zoom, _function) {
+		var range = A2(
+			elm$core$List$map,
+			A2(
+				elm$core$Basics$composeR,
+				elm$core$Basics$toFloat,
+				elm$core$Basics$mul(1 / 100)),
+			A2(elm$core$List$range, 0, 100));
+		var pts = A2(
+			elm$core$List$map,
+			A2(elm$core$Basics$composeR, _function, harrysarson$elm_complex$Complex$toCartesian),
+			range);
+		var offsetCartesian = harrysarson$elm_complex$Complex$toCartesian(offset);
+		var pointsAsStrings = A2(
+			elm$core$List$map,
+			function (_n0) {
+				var re = _n0.re;
+				var im = _n0.im;
+				return A3(author$project$Main$coordTransform, offsetCartesian.re, zoom, re) + (',' + A3(author$project$Main$coordTransform, offsetCartesian.im, zoom, im));
+			},
+			pts);
+		var pointsString = A2(elm$core$String$join, ' ', pointsAsStrings);
+		return A2(
+			elm$svg$Svg$polygon,
+			_List_fromArray(
+				[
+					elm$svg$Svg$Attributes$points(pointsString),
+					elm$svg$Svg$Attributes$strokeWidth('0.2'),
+					elm$svg$Svg$Attributes$stroke(color),
+					elm$svg$Svg$Attributes$fill('none')
+				]),
+			_List_Nil);
+	});
 var elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -6528,6 +6527,28 @@ var author$project$Main$sumToTerm = F3(
 			harrysarson$elm_complex$Complex$zero,
 			A2(elm$core$List$range, 0, n));
 	});
+var author$project$Main$plotEstimatedFunction = F3(
+	function (_n0, constantsDict, _final) {
+		var offset = _n0.a;
+		var zoom = _n0.b;
+		return A4(
+			author$project$Main$plotFunction,
+			'blue',
+			offset,
+			zoom,
+			A2(author$project$Main$sumToTerm, constantsDict, _final + 1));
+	});
+var author$project$Main$plotIntendedFunction = F2(
+	function (_n0, functionName) {
+		var offset = _n0.a;
+		var zoom = _n0.b;
+		return A4(
+			author$project$Main$plotFunction,
+			'green',
+			offset,
+			zoom,
+			author$project$Main$getFunction(functionName));
+	});
 var elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -6544,6 +6565,10 @@ var elm$core$List$concatMap = F2(
 		return elm$core$List$concat(
 			A2(elm$core$List$map, f, list));
 	});
+var elm$virtual_dom$VirtualDom$lazy2 = _VirtualDom_lazy2;
+var elm$html$Html$Lazy$lazy2 = elm$virtual_dom$VirtualDom$lazy2;
+var elm$virtual_dom$VirtualDom$lazy3 = _VirtualDom_lazy3;
+var elm$html$Html$Lazy$lazy3 = elm$virtual_dom$VirtualDom$lazy3;
 var elm$svg$Svg$rect = elm$svg$Svg$trustedNode('rect');
 var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
 var elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
@@ -6639,7 +6664,17 @@ var author$project$Main$viewAnimation = function (model) {
 				_List_fromArray(
 					[
 						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 1.5) * zoom, 'none', 'green', zoom),
-						A3(author$project$Main$drawIntendedShape, offset, zoom, functionName)
+						A3(
+						elm$html$Html$Lazy$lazy2,
+						author$project$Main$plotIntendedFunction,
+						_Utils_Tuple2(offset, zoom),
+						functionName),
+						A4(
+						elm$html$Html$Lazy$lazy3,
+						author$project$Main$plotEstimatedFunction,
+						_Utils_Tuple2(offset, zoom),
+						constantsDict,
+						_final)
 					]))));
 };
 var author$project$Main$NumVectors = function (a) {
@@ -8315,8 +8350,6 @@ var elm$browser$Debugger$History$viewMessage = F3(
 						]))
 				]));
 	});
-var elm$virtual_dom$VirtualDom$lazy3 = _VirtualDom_lazy3;
-var elm$html$Html$Lazy$lazy3 = elm$virtual_dom$VirtualDom$lazy3;
 var elm$browser$Debugger$History$consMsg = F3(
 	function (currentIndex, msg, _n0) {
 		var index = _n0.a;
@@ -8379,8 +8412,6 @@ var elm$browser$Debugger$History$viewSnapshots = F2(
 				_Utils_Tuple2(highIndex, _List_Nil),
 				snapshots).b);
 	});
-var elm$virtual_dom$VirtualDom$lazy2 = _VirtualDom_lazy2;
-var elm$html$Html$Lazy$lazy2 = elm$virtual_dom$VirtualDom$lazy2;
 var elm$browser$Debugger$History$view = F2(
 	function (maybeIndex, _n0) {
 		var snapshots = _n0.snapshots;
