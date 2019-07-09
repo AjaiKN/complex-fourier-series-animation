@@ -6405,6 +6405,7 @@ var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var author$project$Main$makeCircle = F6(
 	function (offset, a, radius, color, f, zoom) {
 		var offsetCartesian = harrysarson$elm_complex$Complex$toCartesian(offset);
@@ -6420,7 +6421,8 @@ var author$project$Main$makeCircle = F6(
 					elm$svg$Svg$Attributes$r(
 					A2(author$project$Main$distTransform, zoom, radius)),
 					elm$svg$Svg$Attributes$stroke(color),
-					elm$svg$Svg$Attributes$fill(f)
+					elm$svg$Svg$Attributes$fill(f),
+					elm$svg$Svg$Attributes$strokeWidth('0.2')
 				]),
 			_List_Nil);
 	});
@@ -6446,7 +6448,8 @@ var author$project$Main$makeLine = F4(
 					A3(author$project$Main$coordTransform, offsetCartesian.re, zoom, c2.re)),
 					elm$svg$Svg$Attributes$y2(
 					A3(author$project$Main$coordTransform, offsetCartesian.im, zoom, c2.im)),
-					elm$svg$Svg$Attributes$stroke('red')
+					elm$svg$Svg$Attributes$stroke('red'),
+					elm$svg$Svg$Attributes$strokeWidth('0.2')
 				]),
 			_List_Nil);
 	});
@@ -6507,6 +6510,7 @@ var elm$core$List$concatMap = F2(
 var elm$svg$Svg$rect = elm$svg$Svg$trustedNode('rect');
 var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
 var elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
+var elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
 var elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
@@ -6550,7 +6554,8 @@ var author$project$Main$viewAnimation = function (model) {
 		_List_fromArray(
 			[
 				elm$svg$Svg$Attributes$width('900'),
-				elm$svg$Svg$Attributes$height('900')
+				elm$svg$Svg$Attributes$height('900'),
+				elm$svg$Svg$Attributes$viewBox('0 0 100 100')
 			]),
 		A2(
 			elm$core$List$cons,
@@ -6567,7 +6572,8 @@ var author$project$Main$viewAnimation = function (model) {
 						elm$svg$Svg$Attributes$height(
 						A2(author$project$Main$distTransform, zoom, 2)),
 						elm$svg$Svg$Attributes$stroke('green'),
-						elm$svg$Svg$Attributes$fill('none')
+						elm$svg$Svg$Attributes$fill('none'),
+						elm$svg$Svg$Attributes$strokeWidth('0.2')
 					]),
 				_List_Nil),
 			_Utils_ap(
@@ -6590,13 +6596,13 @@ var author$project$Main$viewAnimation = function (model) {
 								A3(author$project$Main$sumToTerm, constantsDict, n + 1, time),
 								zoom),
 								A6(author$project$Main$makeCircle, offset, current, distanceToNext, 'red', 'none', zoom),
-								A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 1.5) * zoom, 'none', 'blue', zoom)
+								A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 2) * zoom, 'none', 'blue', zoom)
 							]);
 					},
 					A2(elm$core$List$range, 0, _final)),
 				_List_fromArray(
 					[
-						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 1.5) * zoom, 'none', 'green', zoom)
+						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 2) * zoom, 'none', 'green', zoom)
 					]))));
 };
 var author$project$Main$NumVectors = function (a) {

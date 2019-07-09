@@ -8,8 +8,8 @@ import Html exposing (Html, div, input, label, option, select, span, text)
 import Html.Attributes exposing (class, step, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Lazy
-import Svg exposing (Svg, circle, line, rect, svg)
-import Svg.Attributes exposing (cx, cy, fill, height, r, stroke, width, x, x1, x2, y, y1, y2)
+import Svg exposing (Svg, circle, line, polygon, rect, svg)
+import Svg.Attributes exposing (cx, cy, fill, height, points, r, stroke, strokeWidth, viewBox, width, x, x1, x2, y, y1, y2)
 import Task
 import Time
 
@@ -280,7 +280,7 @@ functionDropdown =
         ]
 
 
-viewAnimation : Model -> Html Msg
+viewAnimation : Model -> Html msg
 viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as model) =
     let
         time =
@@ -305,7 +305,7 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
         offsetCartesian =
             toCartesian offset
     in
-    svg [ width "900", height "900" ] <|
+    svg [ width "900", height "900", viewBox "0 0 100 100" ] <|
         rect
             [ x (coordTransform offsetCartesian.re zoom -1)
             , y (coordTransform offsetCartesian.im zoom -1)
@@ -313,6 +313,7 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
             , height (distTransform zoom 2)
             , stroke "green"
             , fill "none"
+            , strokeWidth "0.2"
             ]
             []
             :: List.concatMap
@@ -334,14 +335,14 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
                             (sumToTerm constantsDict (n + 1) time)
                             zoom
                         , makeCircle offset current distanceToNext "red" "none" zoom
-                        , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
+                        , makeCircle offset current (0.015 / 2 * zoom) "none" "blue" zoom
                         ]
                 )
                 (List.range 0 final)
-            ++ [ makeCircle offset finalPoint (0.03 / 1.5 * zoom) "none" "green" zoom ]
+            ++ [ makeCircle offset finalPoint (0.03 / 2 * zoom) "none" "green" zoom ]
 
 
-makeCircle : Complex -> Complex -> Float -> String -> String -> Float -> Svg Msg
+makeCircle : Complex -> Complex -> Float -> String -> String -> Float -> Svg msg
 makeCircle offset a radius color f zoom =
     let
         c =
@@ -356,11 +357,12 @@ makeCircle offset a radius color f zoom =
         , r (distTransform zoom radius)
         , stroke color
         , fill f
+        , strokeWidth "0.2"
         ]
         []
 
 
-makeLine : Complex -> Complex -> Complex -> Float -> Svg Msg
+makeLine : Complex -> Complex -> Complex -> Float -> Svg msg
 makeLine offset a1 a2 zoom =
     let
         c1 =
@@ -378,6 +380,7 @@ makeLine offset a1 a2 zoom =
         , x2 (coordTransform offsetCartesian.re zoom c2.re)
         , y2 (coordTransform offsetCartesian.im zoom c2.im)
         , stroke "red"
+        , strokeWidth "0.2"
         ]
         []
 
