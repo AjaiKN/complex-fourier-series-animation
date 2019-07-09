@@ -6345,12 +6345,68 @@ var author$project$Main$backAndForthTermNum = function (n) {
 };
 var elm$core$String$fromFloat = _String_fromNumber;
 var author$project$Main$coordTransform = F3(
-	function (offset, zoom, f) {
-		return elm$core$String$fromFloat(((((f + zoom) - offset) * 100) / zoom) / 2) + '%';
+	function (offset, zoom, _float) {
+		return elm$core$String$fromFloat(((((_float + zoom) - offset) * 100) / zoom) / 2);
 	});
 var author$project$Main$distTransform = F2(
-	function (zoom, f) {
-		return elm$core$String$fromFloat(((f * 100) / zoom) / 2) + '%';
+	function (zoom, _float) {
+		return elm$core$String$fromFloat(((_float * 100) / zoom) / 2);
+	});
+var elm$json$Json$Decode$map = _Json_map1;
+var elm$json$Json$Decode$map2 = _Json_map2;
+var elm$json$Json$Decode$succeed = _Json_succeed;
+var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
+	switch (handler.$) {
+		case 'Normal':
+			return 0;
+		case 'MayStopPropagation':
+			return 1;
+		case 'MayPreventDefault':
+			return 2;
+		default:
+			return 3;
+	}
+};
+var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var elm$svg$Svg$polygon = elm$svg$Svg$trustedNode('polygon');
+var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
+var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
+var author$project$Main$drawIntendedShape = F3(
+	function (offset, zoom, funName) {
+		var range = A2(
+			elm$core$List$map,
+			A2(
+				elm$core$Basics$composeR,
+				elm$core$Basics$toFloat,
+				elm$core$Basics$mul(1 / 100)),
+			A2(elm$core$List$range, 0, 100));
+		var offsetCartesian = harrysarson$elm_complex$Complex$toCartesian(offset);
+		var _function = author$project$Main$getFunction(funName);
+		var pts = A2(
+			elm$core$List$map,
+			A2(elm$core$Basics$composeR, _function, harrysarson$elm_complex$Complex$toCartesian),
+			range);
+		var pointsAsStrings = A2(
+			elm$core$List$map,
+			function (_n0) {
+				var re = _n0.re;
+				var im = _n0.im;
+				return A3(author$project$Main$coordTransform, offsetCartesian.re, zoom, re) + (',' + A3(author$project$Main$coordTransform, offsetCartesian.im, zoom, im));
+			},
+			pts);
+		var pointsString = A2(elm$core$String$join, ' ', pointsAsStrings);
+		return A2(
+			elm$svg$Svg$polygon,
+			_List_fromArray(
+				[
+					elm$svg$Svg$Attributes$points(pointsString),
+					elm$svg$Svg$Attributes$strokeWidth('0.2'),
+					elm$svg$Svg$Attributes$stroke('green'),
+					elm$svg$Svg$Attributes$fill('none')
+				]),
+			_List_Nil);
 	});
 var elm$core$String$toFloat = _String_toFloat;
 var author$project$Main$strToFloat = function (s) {
@@ -6383,29 +6439,10 @@ var author$project$Main$getOptions = function (_n0) {
 		zoom: author$project$Main$strToFloat(zoom)
 	};
 };
-var elm$json$Json$Decode$map = _Json_map1;
-var elm$json$Json$Decode$map2 = _Json_map2;
-var elm$json$Json$Decode$succeed = _Json_succeed;
-var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
-	switch (handler.$) {
-		case 'Normal':
-			return 0;
-		case 'MayStopPropagation':
-			return 1;
-		case 'MayPreventDefault':
-			return 2;
-		default:
-			return 3;
-	}
-};
-var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
 var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
-var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
-var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var author$project$Main$makeCircle = F6(
 	function (offset, a, radius, color, f, zoom) {
 		var offsetCartesian = harrysarson$elm_complex$Complex$toCartesian(offset);
@@ -6571,7 +6608,6 @@ var author$project$Main$viewAnimation = function (model) {
 						A2(author$project$Main$distTransform, zoom, 2)),
 						elm$svg$Svg$Attributes$height(
 						A2(author$project$Main$distTransform, zoom, 2)),
-						elm$svg$Svg$Attributes$stroke('green'),
 						elm$svg$Svg$Attributes$fill('none'),
 						elm$svg$Svg$Attributes$strokeWidth('0.2')
 					]),
@@ -6596,13 +6632,14 @@ var author$project$Main$viewAnimation = function (model) {
 								A3(author$project$Main$sumToTerm, constantsDict, n + 1, time),
 								zoom),
 								A6(author$project$Main$makeCircle, offset, current, distanceToNext, 'red', 'none', zoom),
-								A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 2) * zoom, 'none', 'blue', zoom)
+								A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 1.5) * zoom, 'none', 'blue', zoom)
 							]);
 					},
 					A2(elm$core$List$range, 0, _final)),
 				_List_fromArray(
 					[
-						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 2) * zoom, 'none', 'green', zoom)
+						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 1.5) * zoom, 'none', 'green', zoom),
+						A3(author$project$Main$drawIntendedShape, offset, zoom, functionName)
 					]))));
 };
 var author$project$Main$NumVectors = function (a) {

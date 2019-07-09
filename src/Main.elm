@@ -1,4 +1,4 @@
-module Main exposing (Model, Msg(..), average, backAndForthTermNum, constantN, coordTransform, distTransform, init, main, makeCircle, makeLine, myRange, subscriptions, sumToTerm, term, update, view)
+module Main exposing (FunctionName(..), Model, Msg(..), average, backAndForthTermNum, constantN, coordTransform, distTransform, getFunction, init, main, makeCircle, makeLine, myRange, subscriptions, sumToTerm, term, update, view)
 
 import Array exposing (Array)
 import Browser
@@ -311,7 +311,8 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
             , y (coordTransform offsetCartesian.im zoom -1)
             , width (distTransform zoom 2)
             , height (distTransform zoom 2)
-            , stroke "green"
+
+            --, stroke "green"
             , fill "none"
             , strokeWidth "0.2"
             ]
@@ -335,11 +336,13 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
                             (sumToTerm constantsDict (n + 1) time)
                             zoom
                         , makeCircle offset current distanceToNext "red" "none" zoom
-                        , makeCircle offset current (0.015 / 2 * zoom) "none" "blue" zoom
+                        , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
                         ]
                 )
                 (List.range 0 final)
-            ++ [ makeCircle offset finalPoint (0.03 / 2 * zoom) "none" "green" zoom ]
+            ++ [ makeCircle offset finalPoint (0.03 / 1.5 * zoom) "none" "green" zoom
+               , drawIntendedShape offset zoom functionName
+               ]
 
 
 makeCircle : Complex -> Complex -> Float -> String -> String -> Float -> Svg msg
@@ -385,14 +388,44 @@ makeLine offset a1 a2 zoom =
         []
 
 
+drawIntendedShape : Complex -> Float -> FunctionName -> Svg msg
+drawIntendedShape offset zoom funName =
+    let
+        function =
+            getFunction funName
+
+        offsetCartesian =
+            toCartesian offset
+
+        range =
+            List.map (toFloat >> (*) (1 / 100)) (List.range 0 100)
+
+        pts =
+            List.map (function >> toCartesian) range
+
+        pointsAsStrings =
+            List.map
+                (\{ re, im } ->
+                    coordTransform offsetCartesian.re zoom re
+                        ++ ","
+                        ++ coordTransform offsetCartesian.im zoom im
+                )
+                pts
+
+        pointsString =
+            String.join " " pointsAsStrings
+    in
+    polygon [ points pointsString, strokeWidth "0.2", stroke "green", fill "none" ] []
+
+
 coordTransform : Float -> Float -> Float -> String
-coordTransform offset zoom f =
-    String.fromFloat ((f + zoom - offset) * 100 / zoom / 2) ++ "%"
+coordTransform offset zoom float =
+    String.fromFloat ((float + zoom - offset) * 100 / zoom / 2)
 
 
 distTransform : Float -> Float -> String
-distTransform zoom f =
-    String.fromFloat (f * 100 / zoom / 2) ++ "%"
+distTransform zoom float =
+    String.fromFloat (float * 100 / zoom / 2)
 
 
 numInput : (String -> Msg) -> String -> String -> String -> Html Msg
