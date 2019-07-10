@@ -288,7 +288,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every 10 Tick
+    Time.every 16 Tick
 
 
 
@@ -305,15 +305,21 @@ view ({ speed, numVectors, zoom, followFinalPoint, showCircles, showIntendedShap
 
 viewInputs : String -> String -> String -> Bool -> Bool -> Bool -> Bool -> Html Msg
 viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape showTracedShape =
-    div []
-        [ functionDropdown
-        , numInput Speed speed "Speed (cycles per minute)" "any"
-        , numInput NumVectors numVectors "Number of spinning vectors (max = 100)" "1"
-        , numInput Zoom zoom "Zoom" "any"
-        , checkbox ToggleFollowFinalPoint followFinalPoint "Follow final point"
-        , checkbox ToggleShowCircles showCircles "Show circles"
-        , checkbox ToggleShowIntendedShape showIntendedShape "Show intended shape"
-        , checkbox ToggleShowTracedShape showTracedShape "Show traced shape"
+    divClass "row"
+        [ divClass "col"
+            [ functionDropdown
+            , numInput NumVectors numVectors "Number of spinning vectors (max = 100)" "1"
+            ]
+        , divClass "col"
+            [ numInput Speed speed "Speed (cycles per minute)" "any"
+            , numInput Zoom zoom "Zoom" "any"
+            , checkbox ToggleFollowFinalPoint followFinalPoint "Follow final point (may be slower on some devices if showing shapes)"
+            ]
+        , divClass "col"
+            [ checkbox ToggleShowCircles showCircles "Show circles"
+            , checkbox ToggleShowIntendedShape showIntendedShape "Show intended shape (may be slower on some devices)"
+            , checkbox ToggleShowTracedShape showTracedShape "Show traced shape (may be slower on some devices)"
+            ]
         ]
 
 
