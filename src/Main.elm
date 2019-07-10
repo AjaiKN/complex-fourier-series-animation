@@ -313,21 +313,28 @@ viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape 
         , divClass "col"
             [ numInput Speed speed "Speed (cycles per minute)" "any"
             , numInput Zoom zoom "Zoom" "any"
-            , checkbox ToggleFollowFinalPoint followFinalPoint "Follow final point (may be slower on some devices if showing shapes)"
+            , checkbox ToggleFollowFinalPoint followFinalPoint "green" "Follow green point (This might slow down some devices if you're showing intended or traced shapes.)"
             ]
         , divClass "col"
-            [ checkbox ToggleShowCircles showCircles "Show circles"
-            , checkbox ToggleShowIntendedShape showIntendedShape "Show intended shape (may be slower on some devices)"
-            , checkbox ToggleShowTracedShape showTracedShape "Show traced shape (may be slower on some devices)"
+            [ checkbox ToggleShowCircles showCircles "orange" "Show orange circles"
+            , checkbox ToggleShowIntendedShape showIntendedShape "green" "Show intended shape (green curve)"
+            , checkbox ToggleShowTracedShape showTracedShape "blue" "Show traced shape (blue curve)"
             ]
         ]
 
 
-checkbox : msg -> Bool -> String -> Html msg
-checkbox changer val lab =
+checkbox : msg -> Bool -> String -> String -> Html msg
+checkbox changer val color_ lab =
+    let
+        font =
+            Html.node "font"
+
+        color =
+            Html.Attributes.attribute "color"
+    in
     divClass "form-check"
         [ input [ class "form-check-input", type_ "checkbox", value "", onClick changer, checked val ] []
-        , label [ class "form-check-label" ] [ text lab ]
+        , label [ class "form-check-label" ] [ font [ color color_ ] [ text lab ] ]
         ]
 
 

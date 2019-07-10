@@ -6733,8 +6733,21 @@ var author$project$Main$divClass = function (c) {
 };
 var elm$html$Html$input = _VirtualDom_node('input');
 var elm$html$Html$label = _VirtualDom_node('label');
+var elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var elm$html$Html$node = elm$virtual_dom$VirtualDom$node;
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var elm$virtual_dom$VirtualDom$attribute = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_attribute,
+			_VirtualDom_noOnOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlUri(value));
+	});
+var elm$html$Html$Attributes$attribute = elm$virtual_dom$VirtualDom$attribute;
 var elm$json$Json$Encode$bool = _Json_wrap;
 var elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
@@ -6763,8 +6776,10 @@ var elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		elm$json$Json$Decode$succeed(msg));
 };
-var author$project$Main$checkbox = F3(
-	function (changer, val, lab) {
+var author$project$Main$checkbox = F4(
+	function (changer, val, color_, lab) {
+		var font = elm$html$Html$node('font');
+		var color = elm$html$Html$Attributes$attribute('color');
 		return A2(
 			author$project$Main$divClass,
 			'form-check',
@@ -6789,7 +6804,16 @@ var author$project$Main$checkbox = F3(
 						]),
 					_List_fromArray(
 						[
-							elm$html$Html$text(lab)
+							A2(
+							font,
+							_List_fromArray(
+								[
+									color(color_)
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text(lab)
+								]))
 						]))
 				]));
 	});
@@ -6972,16 +6996,16 @@ var author$project$Main$viewInputs = F7(
 						[
 							A4(author$project$Main$numInput, author$project$Main$Speed, speed, 'Speed (cycles per minute)', 'any'),
 							A4(author$project$Main$numInput, author$project$Main$Zoom, zoom, 'Zoom', 'any'),
-							A3(author$project$Main$checkbox, author$project$Main$ToggleFollowFinalPoint, followFinalPoint, 'Follow final point (may be slower on some devices if showing shapes)')
+							A4(author$project$Main$checkbox, author$project$Main$ToggleFollowFinalPoint, followFinalPoint, 'green', 'Follow green point (This might slow down some devices if you\'re showing intended or traced shapes.)')
 						])),
 					A2(
 					author$project$Main$divClass,
 					'col',
 					_List_fromArray(
 						[
-							A3(author$project$Main$checkbox, author$project$Main$ToggleShowCircles, showCircles, 'Show circles'),
-							A3(author$project$Main$checkbox, author$project$Main$ToggleShowIntendedShape, showIntendedShape, 'Show intended shape (may be slower on some devices)'),
-							A3(author$project$Main$checkbox, author$project$Main$ToggleShowTracedShape, showTracedShape, 'Show traced shape (may be slower on some devices)')
+							A4(author$project$Main$checkbox, author$project$Main$ToggleShowCircles, showCircles, 'orange', 'Show orange circles'),
+							A4(author$project$Main$checkbox, author$project$Main$ToggleShowIntendedShape, showIntendedShape, 'green', 'Show intended shape (green curve)'),
+							A4(author$project$Main$checkbox, author$project$Main$ToggleShowTracedShape, showTracedShape, 'blue', 'Show traced shape (blue curve)')
 						]))
 				]));
 	});
@@ -8443,11 +8467,6 @@ var elm$browser$Debugger$History$consMsg = F3(
 				A4(elm$html$Html$Lazy$lazy3, elm$browser$Debugger$History$viewMessage, currentIndex, index, msg),
 				rest));
 	});
-var elm$virtual_dom$VirtualDom$node = function (tag) {
-	return _VirtualDom_node(
-		_VirtualDom_noScript(tag));
-};
-var elm$html$Html$node = elm$virtual_dom$VirtualDom$node;
 var elm$browser$Debugger$History$styles = A3(
 	elm$html$Html$node,
 	'style',
