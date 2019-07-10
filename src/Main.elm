@@ -19,6 +19,8 @@ type FunctionName
     | CosFunction
     | SinFunction2D
     | StepFunction
+    | Line
+    | Parabola
 
 
 getFunction : FunctionName -> Float -> Complex
@@ -69,6 +71,12 @@ getFunction funName t1 =
 
             else
                 real -1
+
+        Line ->
+            complex (2 * t - 1) (2 * t - 1)
+
+        Parabola ->
+            complex (t * 2 - 1) (2 * (t * 2 - 1) ^ 2 - 1)
 
 
 myRange : Array Float
@@ -229,6 +237,15 @@ update msg model =
                         "SinFunction2D" ->
                             SinFunction2D
 
+                        "StepFunction" ->
+                            StepFunction
+
+                        "Line" ->
+                            Line
+
+                        "Parabola" ->
+                            Parabola
+
                         _ ->
                             StepFunction
             in
@@ -291,6 +308,8 @@ functionDropdown =
             , option [ value "SquareFunction" ] [ text "Square function" ]
             , option [ value "CosFunction" ] [ text "cos(x)" ]
             , option [ value "SinFunction2D" ] [ text "x + i sin x" ]
+            , option [ value "Line" ] [ text "Line" ]
+            , option [ value "Parabola" ] [ text "Parabola" ]
             ]
         ]
 

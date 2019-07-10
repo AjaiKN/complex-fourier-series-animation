@@ -5482,8 +5482,15 @@ var author$project$Main$getFunction = F2(
 					(t * 4) - 2,
 					elm$core$Basics$sin(
 						elm$core$Basics$turns(t * 3)));
-			default:
+			case 'StepFunction':
 				return (t < 0.5) ? harrysarson$elm_complex$Complex$real(1) : harrysarson$elm_complex$Complex$real(-1);
+			case 'Line':
+				return A2(harrysarson$elm_complex$Complex$complex, (2 * t) - 1, (2 * t) - 1);
+			default:
+				return A2(
+					harrysarson$elm_complex$Complex$complex,
+					(t * 2) - 1,
+					(2 * A2(elm$core$Basics$pow, (t * 2) - 1, 2)) - 1);
 		}
 	});
 var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
@@ -6271,6 +6278,8 @@ var author$project$Main$subscriptions = function (model) {
 	return A2(elm$time$Time$every, 10, author$project$Main$Tick);
 };
 var author$project$Main$CosFunction = {$: 'CosFunction'};
+var author$project$Main$Line = {$: 'Line'};
+var author$project$Main$Parabola = {$: 'Parabola'};
 var author$project$Main$SinFunction2D = {$: 'SinFunction2D'};
 var author$project$Main$SquareFunction = {$: 'SquareFunction'};
 var elm$core$Basics$not = _Basics_not;
@@ -6339,6 +6348,12 @@ var author$project$Main$update = F2(
 							return author$project$Main$CosFunction;
 						case 'SinFunction2D':
 							return author$project$Main$SinFunction2D;
+						case 'StepFunction':
+							return author$project$Main$StepFunction;
+						case 'Line':
+							return author$project$Main$Line;
+						case 'Parabola':
+							return author$project$Main$Parabola;
 						default:
 							return author$project$Main$StepFunction;
 					}
@@ -6834,6 +6849,26 @@ var author$project$Main$functionDropdown = A2(
 					_List_fromArray(
 						[
 							elm$html$Html$text('x + i sin x')
+						])),
+					A2(
+					elm$html$Html$option,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$value('Line')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('Line')
+						])),
+					A2(
+					elm$html$Html$option,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$value('Parabola')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('Parabola')
 						]))
 				]))
 		]));
