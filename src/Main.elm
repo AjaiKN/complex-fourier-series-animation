@@ -339,30 +339,31 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
         offsetCartesian =
             toCartesian offset
     in
-    svg [ width "900", height "900", viewBox "0 0 100 100" ] <|
-        List.concatMap
-            (\n ->
-                let
-                    current =
-                        sumToTerm constantsDict n time
+    svg [ viewBox "0 0 100 100" ] <|
+        rect [ fill "black", width "200", height "200" ] []
+            :: List.concatMap
+                (\n ->
+                    let
+                        current =
+                            sumToTerm constantsDict n time
 
-                    distanceToNext =
-                        (Complex.toPolar (term constantsDict (backAndForthTermNum (n + 1)) time)).abs
-                in
-                if distanceToNext < 0.0001 then
-                    []
+                        distanceToNext =
+                            (Complex.toPolar (term constantsDict (backAndForthTermNum (n + 1)) time)).abs
+                    in
+                    if distanceToNext < 0.0001 then
+                        []
 
-                else
-                    [ makeLine
-                        offset
-                        current
-                        (sumToTerm constantsDict (n + 1) time)
-                        zoom
-                    , makeCircle offset current distanceToNext "red" "none" zoom
-                    , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
-                    ]
-            )
-            (List.range 0 final)
+                    else
+                        [ makeLine
+                            offset
+                            current
+                            (sumToTerm constantsDict (n + 1) time)
+                            zoom
+                        , makeCircle offset current distanceToNext "orange" "none" zoom
+                        , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
+                        ]
+                )
+                (List.range 0 final)
             ++ [ makeCircle offset finalPoint (0.03 / 1.5 * zoom) "none" "green" zoom
                , Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
                , Html.Lazy.lazy4 plotEstimatedFunction offset zoom constantsDict final
@@ -370,7 +371,7 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
 
 
 makeCircle : Complex -> Complex -> Float -> String -> String -> Float -> Svg msg
-makeCircle offset a radius color f zoom =
+makeCircle offset a radius color fill_ zoom =
     let
         c =
             toCartesian a
@@ -383,7 +384,7 @@ makeCircle offset a radius color f zoom =
         , cy (coordTransform offsetCartesian.im zoom c.im)
         , r (distTransform zoom radius)
         , stroke color
-        , fill f
+        , fill fill_
         , strokeWidth "0.2"
         ]
         []
@@ -407,7 +408,7 @@ makeLine offset a1 a2 zoom =
         , x2 (coordTransform offsetCartesian.re zoom c2.re)
         , y2 (coordTransform offsetCartesian.im zoom c2.im)
         , stroke "red"
-        , strokeWidth "0.2"
+        , strokeWidth "0.5"
         ]
         []
 

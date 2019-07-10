@@ -6441,7 +6441,7 @@ var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var author$project$Main$makeCircle = F6(
-	function (offset, a, radius, color, f, zoom) {
+	function (offset, a, radius, color, fill_, zoom) {
 		var offsetCartesian = harrysarson$elm_complex$Complex$toCartesian(offset);
 		var c = harrysarson$elm_complex$Complex$toCartesian(a);
 		return A2(
@@ -6455,7 +6455,7 @@ var author$project$Main$makeCircle = F6(
 					elm$svg$Svg$Attributes$r(
 					A2(author$project$Main$distTransform, zoom, radius)),
 					elm$svg$Svg$Attributes$stroke(color),
-					elm$svg$Svg$Attributes$fill(f),
+					elm$svg$Svg$Attributes$fill(fill_),
 					elm$svg$Svg$Attributes$strokeWidth('0.2')
 				]),
 			_List_Nil);
@@ -6483,7 +6483,7 @@ var author$project$Main$makeLine = F4(
 					elm$svg$Svg$Attributes$y2(
 					A3(author$project$Main$coordTransform, offsetCartesian.im, zoom, c2.im)),
 					elm$svg$Svg$Attributes$stroke('red'),
-					elm$svg$Svg$Attributes$strokeWidth('0.2')
+					elm$svg$Svg$Attributes$strokeWidth('0.5')
 				]),
 			_List_Nil);
 	});
@@ -6599,6 +6599,7 @@ var elm$virtual_dom$VirtualDom$lazy3 = _VirtualDom_lazy3;
 var elm$html$Html$Lazy$lazy3 = elm$virtual_dom$VirtualDom$lazy3;
 var elm$virtual_dom$VirtualDom$lazy4 = _VirtualDom_lazy4;
 var elm$html$Html$Lazy$lazy4 = elm$virtual_dom$VirtualDom$lazy4;
+var elm$svg$Svg$rect = elm$svg$Svg$trustedNode('rect');
 var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
 var elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
@@ -6642,40 +6643,49 @@ var author$project$Main$viewAnimation = function (model) {
 		elm$svg$Svg$svg,
 		_List_fromArray(
 			[
-				elm$svg$Svg$Attributes$width('900'),
-				elm$svg$Svg$Attributes$height('900'),
 				elm$svg$Svg$Attributes$viewBox('0 0 100 100')
 			]),
-		_Utils_ap(
+		A2(
+			elm$core$List$cons,
 			A2(
-				elm$core$List$concatMap,
-				function (n) {
-					var distanceToNext = harrysarson$elm_complex$Complex$toPolar(
-						A3(
-							author$project$Main$term,
-							constantsDict,
-							author$project$Main$backAndForthTermNum(n + 1),
-							time)).abs;
-					var current = A3(author$project$Main$sumToTerm, constantsDict, n, time);
-					return (distanceToNext < 1.0e-4) ? _List_Nil : _List_fromArray(
-						[
-							A4(
-							author$project$Main$makeLine,
-							offset,
-							current,
-							A3(author$project$Main$sumToTerm, constantsDict, n + 1, time),
-							zoom),
-							A6(author$project$Main$makeCircle, offset, current, distanceToNext, 'red', 'none', zoom),
-							A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 1.5) * zoom, 'none', 'blue', zoom)
-						]);
-				},
-				A2(elm$core$List$range, 0, _final)),
-			_List_fromArray(
-				[
-					A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 1.5) * zoom, 'none', 'green', zoom),
-					A4(elm$html$Html$Lazy$lazy3, author$project$Main$plotIntendedFunction, offset, zoom, functionName),
-					A5(elm$html$Html$Lazy$lazy4, author$project$Main$plotEstimatedFunction, offset, zoom, constantsDict, _final)
-				])));
+				elm$svg$Svg$rect,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$fill('black'),
+						elm$svg$Svg$Attributes$width('200'),
+						elm$svg$Svg$Attributes$height('200')
+					]),
+				_List_Nil),
+			_Utils_ap(
+				A2(
+					elm$core$List$concatMap,
+					function (n) {
+						var distanceToNext = harrysarson$elm_complex$Complex$toPolar(
+							A3(
+								author$project$Main$term,
+								constantsDict,
+								author$project$Main$backAndForthTermNum(n + 1),
+								time)).abs;
+						var current = A3(author$project$Main$sumToTerm, constantsDict, n, time);
+						return (distanceToNext < 1.0e-4) ? _List_Nil : _List_fromArray(
+							[
+								A4(
+								author$project$Main$makeLine,
+								offset,
+								current,
+								A3(author$project$Main$sumToTerm, constantsDict, n + 1, time),
+								zoom),
+								A6(author$project$Main$makeCircle, offset, current, distanceToNext, 'orange', 'none', zoom),
+								A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 1.5) * zoom, 'none', 'blue', zoom)
+							]);
+					},
+					A2(elm$core$List$range, 0, _final)),
+				_List_fromArray(
+					[
+						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 1.5) * zoom, 'none', 'green', zoom),
+						A4(elm$html$Html$Lazy$lazy3, author$project$Main$plotIntendedFunction, offset, zoom, functionName),
+						A5(elm$html$Html$Lazy$lazy4, author$project$Main$plotEstimatedFunction, offset, zoom, constantsDict, _final)
+					]))));
 };
 var author$project$Main$NumVectors = function (a) {
 	return {$: 'NumVectors', a: a};
