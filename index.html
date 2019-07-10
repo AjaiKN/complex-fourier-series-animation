@@ -5977,6 +5977,9 @@ var author$project$Main$init = function (_n0) {
 			functionName: defaultFunction,
 			numVectors: '40',
 			originalTime: -100,
+			showCircles: true,
+			showIntendedShape: true,
+			showTracedShape: true,
 			sinceStart: 0,
 			speed: '8',
 			zoom: '2'
@@ -6338,6 +6341,24 @@ var author$project$Main$update = F2(
 						model,
 						{followFinalPoint: !model.followFinalPoint}),
 					elm$core$Platform$Cmd$none);
+			case 'ToggleShowCircles':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{showCircles: !model.showCircles}),
+					elm$core$Platform$Cmd$none);
+			case 'ToggleShowIntendedShape':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{showIntendedShape: !model.showIntendedShape}),
+					elm$core$Platform$Cmd$none);
+			case 'ToggleShowTracedShape':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{showTracedShape: !model.showTracedShape}),
+					elm$core$Platform$Cmd$none);
 			default:
 				var str = msg.a;
 				var functionName = function () {
@@ -6595,6 +6616,7 @@ var elm$core$List$concatMap = F2(
 		return elm$core$List$concat(
 			A2(elm$core$List$map, f, list));
 	});
+var elm$html$Html$div = _VirtualDom_node('div');
 var elm$virtual_dom$VirtualDom$lazy3 = _VirtualDom_lazy3;
 var elm$html$Html$Lazy$lazy3 = elm$virtual_dom$VirtualDom$lazy3;
 var elm$virtual_dom$VirtualDom$lazy4 = _VirtualDom_lazy4;
@@ -6630,6 +6652,9 @@ var author$project$Main$viewAnimation = function (model) {
 	var followFinalPoint = model.followFinalPoint;
 	var functionName = model.functionName;
 	var constantsDict = model.constantsDict;
+	var showCircles = model.showCircles;
+	var showIntendedShape = model.showIntendedShape;
+	var showTracedShape = model.showTracedShape;
 	var _n0 = author$project$Main$getOptions(model);
 	var speed = _n0.speed;
 	var numVectors = _n0.numVectors;
@@ -6675,7 +6700,7 @@ var author$project$Main$viewAnimation = function (model) {
 								current,
 								A3(author$project$Main$sumToTerm, constantsDict, n + 1, time),
 								zoom),
-								A6(author$project$Main$makeCircle, offset, current, distanceToNext, 'orange', 'none', zoom),
+								showCircles ? A6(author$project$Main$makeCircle, offset, current, distanceToNext, 'orange', 'none', zoom) : A2(elm$html$Html$div, _List_Nil, _List_Nil),
 								A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 1.5) * zoom, 'none', 'blue', zoom)
 							]);
 					},
@@ -6683,8 +6708,8 @@ var author$project$Main$viewAnimation = function (model) {
 				_List_fromArray(
 					[
 						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 1.5) * zoom, 'none', 'green', zoom),
-						A4(elm$html$Html$Lazy$lazy3, author$project$Main$plotIntendedFunction, offset, zoom, functionName),
-						A5(elm$html$Html$Lazy$lazy4, author$project$Main$plotEstimatedFunction, offset, zoom, constantsDict, _final)
+						showIntendedShape ? A4(elm$html$Html$Lazy$lazy3, author$project$Main$plotIntendedFunction, offset, zoom, functionName) : A2(elm$html$Html$div, _List_Nil, _List_Nil),
+						showTracedShape ? A5(elm$html$Html$Lazy$lazy4, author$project$Main$plotEstimatedFunction, offset, zoom, constantsDict, _final) : A2(elm$html$Html$div, _List_Nil, _List_Nil)
 					]))));
 };
 var author$project$Main$NumVectors = function (a) {
@@ -6694,10 +6719,12 @@ var author$project$Main$Speed = function (a) {
 	return {$: 'Speed', a: a};
 };
 var author$project$Main$ToggleFollowFinalPoint = {$: 'ToggleFollowFinalPoint'};
+var author$project$Main$ToggleShowCircles = {$: 'ToggleShowCircles'};
+var author$project$Main$ToggleShowIntendedShape = {$: 'ToggleShowIntendedShape'};
+var author$project$Main$ToggleShowTracedShape = {$: 'ToggleShowTracedShape'};
 var author$project$Main$Zoom = function (a) {
 	return {$: 'Zoom', a: a};
 };
-var elm$html$Html$div = _VirtualDom_node('div');
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -6718,6 +6745,15 @@ var elm$html$Html$input = _VirtualDom_node('input');
 var elm$html$Html$label = _VirtualDom_node('label');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var elm$json$Json$Encode$bool = _Json_wrap;
+var elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$bool(bool));
+	});
+var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
 var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
 var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
@@ -6737,8 +6773,8 @@ var elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		elm$json$Json$Decode$succeed(msg));
 };
-var author$project$Main$checkbox = F2(
-	function (changer, lab) {
+var author$project$Main$checkbox = F3(
+	function (changer, val, lab) {
 		return A2(
 			author$project$Main$divClass,
 			'form-check',
@@ -6751,7 +6787,8 @@ var author$project$Main$checkbox = F2(
 							elm$html$Html$Attributes$class('form-check-input'),
 							elm$html$Html$Attributes$type_('checkbox'),
 							elm$html$Html$Attributes$value(''),
-							elm$html$Html$Events$onClick(changer)
+							elm$html$Html$Events$onClick(changer),
+							elm$html$Html$Attributes$checked(val)
 						]),
 					_List_Nil),
 					A2(
@@ -6923,8 +6960,8 @@ var author$project$Main$numInput = F4(
 						]))
 				]));
 	});
-var author$project$Main$viewInputs = F3(
-	function (speed, numVectors, zoom) {
+var author$project$Main$viewInputs = F7(
+	function (speed, numVectors, zoom, followFinalPoint, showCircles, showIntendedShape, showTracedShape) {
 		return A2(
 			elm$html$Html$div,
 			_List_Nil,
@@ -6934,16 +6971,28 @@ var author$project$Main$viewInputs = F3(
 					A4(author$project$Main$numInput, author$project$Main$Speed, speed, 'Speed (cycles per minute)', 'any'),
 					A4(author$project$Main$numInput, author$project$Main$NumVectors, numVectors, 'Number of spinning vectors (max = 100)', '1'),
 					A4(author$project$Main$numInput, author$project$Main$Zoom, zoom, 'Zoom', 'any'),
-					A2(author$project$Main$checkbox, author$project$Main$ToggleFollowFinalPoint, 'Follow final point')
+					A3(author$project$Main$checkbox, author$project$Main$ToggleFollowFinalPoint, followFinalPoint, 'Follow final point'),
+					A3(author$project$Main$checkbox, author$project$Main$ToggleShowCircles, showCircles, 'Show circles'),
+					A3(author$project$Main$checkbox, author$project$Main$ToggleShowIntendedShape, showIntendedShape, 'Show intended shape'),
+					A3(author$project$Main$checkbox, author$project$Main$ToggleShowTracedShape, showTracedShape, 'Show traced shape')
 				]));
 	});
+var elm$virtual_dom$VirtualDom$lazy7 = _VirtualDom_lazy7;
+var elm$html$Html$Lazy$lazy7 = elm$virtual_dom$VirtualDom$lazy7;
 var author$project$Main$view = function (model) {
+	var speed = model.speed;
+	var numVectors = model.numVectors;
+	var zoom = model.zoom;
+	var followFinalPoint = model.followFinalPoint;
+	var showCircles = model.showCircles;
+	var showIntendedShape = model.showIntendedShape;
+	var showTracedShape = model.showTracedShape;
 	return A2(
 		elm$html$Html$div,
 		_List_Nil,
 		_List_fromArray(
 			[
-				A4(elm$html$Html$Lazy$lazy3, author$project$Main$viewInputs, model.speed, model.numVectors, model.zoom),
+				A8(elm$html$Html$Lazy$lazy7, author$project$Main$viewInputs, speed, numVectors, zoom, followFinalPoint, showCircles, showIntendedShape, showTracedShape),
 				author$project$Main$viewAnimation(model)
 			]));
 };
@@ -10694,7 +10743,7 @@ var elm$browser$Browser$element = _Browser_element;
 var author$project$Main$main = elm$browser$Browser$element(
 	{init: author$project$Main$init, subscriptions: author$project$Main$subscriptions, update: author$project$Main$update, view: author$project$Main$view});
 _Platform_export({'Main':{'init':author$project$Main$main(
-	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"InitialTime":["Time.Posix"],"Tick":["Time.Posix"],"Speed":["String.String"],"NumVectors":["String.String"],"Zoom":["String.String"],"ToggleFollowFinalPoint":[],"ChangeFunction":["String.String"]}},"String.String":{"args":[],"tags":{"String":[]}},"Time.Posix":{"args":[],"tags":{"Posix":["Basics.Int"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}}}}})}});}(this));
+	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"InitialTime":["Time.Posix"],"Tick":["Time.Posix"],"Speed":["String.String"],"NumVectors":["String.String"],"Zoom":["String.String"],"ToggleFollowFinalPoint":[],"ChangeFunction":["String.String"],"ToggleShowCircles":[],"ToggleShowIntendedShape":[],"ToggleShowTracedShape":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Time.Posix":{"args":[],"tags":{"Posix":["Basics.Int"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}}}}})}});}(this));
 
 var app = Elm.Main.init({ node: document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49") });
 if (document.getElementById("elm-f0111bc4e658d0f98db96260c16f7e49"))

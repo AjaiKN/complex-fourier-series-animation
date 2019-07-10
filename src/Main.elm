@@ -5,7 +5,7 @@ import Browser
 import Complex exposing (..)
 import Dict exposing (Dict)
 import Html exposing (Html, div, input, label, option, select, span, text)
-import Html.Attributes exposing (class, step, type_, value)
+import Html.Attributes exposing (checked, class, step, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Lazy
 import Svg exposing (Svg, circle, line, polygon, rect, svg)
@@ -155,6 +155,9 @@ type alias Model =
     , followFinalPoint : Bool
     , functionName : FunctionName
     , constantsDict : Dict Int Complex
+    , showCircles : Bool
+    , showIntendedShape : Bool
+    , showTracedShape : Bool
     }
 
 
@@ -172,6 +175,9 @@ init _ =
       , followFinalPoint = False
       , functionName = defaultFunction
       , constantsDict = getDict defaultFunction
+      , showCircles = True
+      , showIntendedShape = True
+      , showTracedShape = True
       }
     , Task.perform InitialTime Time.now
     )
@@ -189,6 +195,9 @@ type Msg
     | Zoom String
     | ToggleFollowFinalPoint
     | ChangeFunction String
+    | ToggleShowCircles
+    | ToggleShowIntendedShape
+    | ToggleShowTracedShape
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -221,6 +230,21 @@ update msg model =
 
         ToggleFollowFinalPoint ->
             ( { model | followFinalPoint = not model.followFinalPoint }
+            , Cmd.none
+            )
+
+        ToggleShowCircles ->
+            ( { model | showCircles = not model.showCircles }
+            , Cmd.none
+            )
+
+        ToggleShowIntendedShape ->
+            ( { model | showIntendedShape = not model.showIntendedShape }
+            , Cmd.none
+            )
+
+        ToggleShowTracedShape ->
+            ( { model | showTracedShape = not model.showTracedShape }
             , Cmd.none
             )
 
@@ -272,28 +296,31 @@ subscriptions model =
 
 
 view : Model -> Html Msg
-view model =
+view ({ speed, numVectors, zoom, followFinalPoint, showCircles, showIntendedShape, showTracedShape } as model) =
     div []
-        [ Html.Lazy.lazy3 viewInputs model.speed model.numVectors model.zoom
+        [ Html.Lazy.lazy7 viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape showTracedShape
         , viewAnimation model
         ]
 
 
-viewInputs : String -> String -> String -> Html Msg
-viewInputs speed numVectors zoom =
+viewInputs : String -> String -> String -> Bool -> Bool -> Bool -> Bool -> Html Msg
+viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape showTracedShape =
     div []
         [ functionDropdown
         , numInput Speed speed "Speed (cycles per minute)" "any"
         , numInput NumVectors numVectors "Number of spinning vectors (max = 100)" "1"
         , numInput Zoom zoom "Zoom" "any"
-        , checkbox ToggleFollowFinalPoint "Follow final point"
+        , checkbox ToggleFollowFinalPoint followFinalPoint "Follow final point"
+        , checkbox ToggleShowCircles showCircles "Show circles"
+        , checkbox ToggleShowIntendedShape showIntendedShape "Show intended shape"
+        , checkbox ToggleShowTracedShape showTracedShape "Show traced shape"
         ]
 
 
-checkbox : msg -> String -> Html msg
-checkbox changer lab =
+checkbox : msg -> Bool -> String -> Html msg
+checkbox changer val lab =
     divClass "form-check"
-        [ input [ class "form-check-input", type_ "checkbox", value "", onClick changer ] []
+        [ input [ class "form-check-input", type_ "checkbox", value "", onClick changer, checked val ] []
         , label [ class "form-check-label" ] [ text lab ]
         ]
 
@@ -315,7 +342,7 @@ functionDropdown =
 
 
 viewAnimation : Model -> Html msg
-viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as model) =
+viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, showCircles, showIntendedShape, showTracedShape } as model) =
     let
         time =
             toFloat sinceStart / 1000 / 60 * speed
@@ -359,14 +386,26 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict } as 
                             current
                             (sumToTerm constantsDict (n + 1) time)
                             zoom
-                        , makeCircle offset current distanceToNext "orange" "none" zoom
+                        , if showCircles then
+                            makeCircle offset current distanceToNext "orange" "none" zoom
+
+                          else
+                            div [] []
                         , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
                         ]
                 )
                 (List.range 0 final)
             ++ [ makeCircle offset finalPoint (0.03 / 1.5 * zoom) "none" "green" zoom
-               , Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
-               , Html.Lazy.lazy4 plotEstimatedFunction offset zoom constantsDict final
+               , if showIntendedShape then
+                    Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
+
+                 else
+                    div [] []
+               , if showTracedShape then
+                    Html.Lazy.lazy4 plotEstimatedFunction offset zoom constantsDict final
+
+                 else
+                    div [] []
                ]
 
 
