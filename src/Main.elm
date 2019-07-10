@@ -460,7 +460,7 @@ coordTransform offset zoom float =
 
 distTransform : Float -> Float -> String
 distTransform zoom float =
-    String.fromFloat (float * 100 / zoom / 2)
+    String.fromFloat (abs (float * 100 / zoom / 2))
 
 
 numInput : (String -> Msg) -> String -> String -> String -> Html Msg

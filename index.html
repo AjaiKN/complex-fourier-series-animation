@@ -6409,9 +6409,13 @@ var author$project$Main$coordTransform = F3(
 	function (offset, zoom, _float) {
 		return elm$core$String$fromFloat(((((_float + zoom) - offset) * 100) / zoom) / 2);
 	});
+var elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
 var author$project$Main$distTransform = F2(
 	function (zoom, _float) {
-		return elm$core$String$fromFloat(((_float * 100) / zoom) / 2);
+		return elm$core$String$fromFloat(
+			elm$core$Basics$abs(((_float * 100) / zoom) / 2));
 	});
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map2 = _Json_map2;
