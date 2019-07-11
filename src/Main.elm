@@ -379,8 +379,8 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, show
         offsetCartesian =
             toCartesian offset
     in
-    svg [ viewBox "0 0 100 100" ] <|
-        rect [ fill "black", width "200", height "200" ] []
+    svg [ viewBox "-10 16 120 200" ] <|
+        rect [ fill "black", x "-100", y "-100", width "500", height "500" ] []
             :: List.concatMap
                 (\n ->
                     let

@@ -6616,6 +6616,8 @@ var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
 var elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
+var elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
 var elm$core$Basics$atan2 = _Basics_atan2;
 var elm$core$Basics$sqrt = _Basics_sqrt;
 var harrysarson$elm_complex$Internal$Complex$polarInfinity = {abs: 1 / 0, arg: 0 / 0};
@@ -6658,7 +6660,7 @@ var author$project$Main$viewAnimation = function (model) {
 		elm$svg$Svg$svg,
 		_List_fromArray(
 			[
-				elm$svg$Svg$Attributes$viewBox('0 0 100 100')
+				elm$svg$Svg$Attributes$viewBox('-10 16 120 200')
 			]),
 		A2(
 			elm$core$List$cons,
@@ -6667,8 +6669,10 @@ var author$project$Main$viewAnimation = function (model) {
 				_List_fromArray(
 					[
 						elm$svg$Svg$Attributes$fill('black'),
-						elm$svg$Svg$Attributes$width('200'),
-						elm$svg$Svg$Attributes$height('200')
+						elm$svg$Svg$Attributes$x('-100'),
+						elm$svg$Svg$Attributes$y('-100'),
+						elm$svg$Svg$Attributes$width('500'),
+						elm$svg$Svg$Attributes$height('500')
 					]),
 				_List_Nil),
 			_Utils_ap(
