@@ -5907,7 +5907,7 @@ var author$project$Main$makeCircle = F6(
 					A2(author$project$Main$distTransform, zoom, radius)),
 					elm$svg$Svg$Attributes$stroke(color),
 					elm$svg$Svg$Attributes$fill(fill_),
-					elm$svg$Svg$Attributes$strokeWidth('0.2')
+					elm$svg$Svg$Attributes$strokeWidth('0.06')
 				]),
 			_List_Nil);
 	});
@@ -5934,7 +5934,7 @@ var author$project$Main$makeLine = F4(
 					elm$svg$Svg$Attributes$y2(
 					A3(author$project$Main$coordTransform, offsetCartesian.im, zoom, c2.im)),
 					elm$svg$Svg$Attributes$stroke('red'),
-					elm$svg$Svg$Attributes$strokeWidth('0.5')
+					elm$svg$Svg$Attributes$strokeWidth('0.3')
 				]),
 			_List_Nil);
 	});
@@ -5968,7 +5968,7 @@ var author$project$Main$plotFunction = F4(
 			_List_fromArray(
 				[
 					elm$svg$Svg$Attributes$points(pointsString),
-					elm$svg$Svg$Attributes$strokeWidth('0.2'),
+					elm$svg$Svg$Attributes$strokeWidth('0.35'),
 					elm$svg$Svg$Attributes$stroke(color),
 					elm$svg$Svg$Attributes$fill('none')
 				]),
@@ -6135,13 +6135,13 @@ var author$project$Main$viewAnimation = function (model) {
 								A3(author$project$Main$sumToTerm, constantsDict, n + 1, time),
 								zoom),
 								showCircles ? A6(author$project$Main$makeCircle, offset, current, distanceToNext, 'orange', 'none', zoom) : A2(elm$html$Html$div, _List_Nil, _List_Nil),
-								A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 1.5) * zoom, 'none', 'blue', zoom)
+								A6(author$project$Main$makeCircle, offset, current, (1.5e-2 / 2) * zoom, 'none', 'blue', zoom)
 							]);
 					},
 					A2(elm$core$List$range, 0, _final)),
 				_List_fromArray(
 					[
-						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 1.5) * zoom, 'none', 'green', zoom),
+						A6(author$project$Main$makeCircle, offset, finalPoint, (3.0e-2 / 2) * zoom, 'none', 'green', zoom),
 						showIntendedShape ? A4(elm$html$Html$Lazy$lazy3, author$project$Main$plotIntendedFunction, offset, zoom, functionName) : A2(elm$html$Html$div, _List_Nil, _List_Nil),
 						showTracedShape ? A5(elm$html$Html$Lazy$lazy4, author$project$Main$plotEstimatedFunction, offset, zoom, constantsDict, _final) : A2(elm$html$Html$div, _List_Nil, _List_Nil)
 					]))));

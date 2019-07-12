@@ -403,11 +403,11 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, show
 
                           else
                             div [] []
-                        , makeCircle offset current (0.015 / 1.5 * zoom) "none" "blue" zoom
+                        , makeCircle offset current (0.015 / 2 * zoom) "none" "blue" zoom
                         ]
                 )
                 (List.range 0 final)
-            ++ [ makeCircle offset finalPoint (0.03 / 1.5 * zoom) "none" "green" zoom
+            ++ [ makeCircle offset finalPoint (0.03 / 2 * zoom) "none" "green" zoom
                , if showIntendedShape then
                     Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
 
@@ -436,7 +436,7 @@ makeCircle offset a radius color fill_ zoom =
         , r (distTransform zoom radius)
         , stroke color
         , fill fill_
-        , strokeWidth "0.2"
+        , strokeWidth "0.06"
         ]
         []
 
@@ -459,7 +459,7 @@ makeLine offset a1 a2 zoom =
         , x2 (coordTransform offsetCartesian.re zoom c2.re)
         , y2 (coordTransform offsetCartesian.im zoom c2.im)
         , stroke "red"
-        , strokeWidth "0.5"
+        , strokeWidth "0.3"
         ]
         []
 
@@ -488,7 +488,7 @@ plotFunction color offset zoom function =
         pointsString =
             String.join " " pointsAsStrings
     in
-    polygon [ points pointsString, strokeWidth "0.2", stroke color, fill "none" ] []
+    polygon [ points pointsString, strokeWidth "0.35", stroke color, fill "none" ] []
 
 
 
