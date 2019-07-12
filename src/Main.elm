@@ -4,7 +4,7 @@ import Array exposing (Array)
 import Browser
 import Complex exposing (..)
 import Dict exposing (Dict)
-import Html exposing (Html, div, input, label, option, select, span, text)
+import Html exposing (Html, div, input, label, option, p, select, span, text)
 import Html.Attributes exposing (checked, class, step, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Lazy
@@ -308,11 +308,12 @@ viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape 
     divClass "row"
         [ divClass "col"
             [ functionDropdown
-            , numInput NumVectors numVectors "Number of spinning vectors (max = 100)" "1"
+            , numInput NumVectors numVectors "1" <| colorText "red" "Number of spinning vectors (max = 100)"
+            , p [] [ text "Try starting with one ", colorText "red" "vector ", text "and increasing one at a time." ]
             ]
         , divClass "col"
-            [ numInput Speed speed "Speed (cycles per minute)" "any"
-            , numInput Zoom zoom "Zoom" "any"
+            [ numInput Speed speed "any" <| text "Speed (cycles per minute)"
+            , numInput Zoom zoom "any" <| text "Zoom"
             , checkbox ToggleFollowFinalPoint followFinalPoint "green" "Follow green point (This might slow down some devices if you're showing intended or traced shapes.)"
             ]
         , divClass "col"
@@ -324,18 +325,16 @@ viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape 
 
 
 checkbox : msg -> Bool -> String -> String -> Html msg
-checkbox changer val color_ lab =
-    let
-        font =
-            Html.node "font"
-
-        color =
-            Html.Attributes.attribute "color"
-    in
+checkbox changer val color lab =
     divClass "form-check"
         [ input [ class "form-check-input", type_ "checkbox", value "", onClick changer, checked val ] []
-        , label [ class "form-check-label" ] [ font [ color color_ ] [ text lab ] ]
+        , label [ class "form-check-label" ] [ colorText color lab ]
         ]
+
+
+colorText : String -> String -> Html msg
+colorText color text_ =
+    Html.node "font" [ Html.Attributes.attribute "color" color ] [ text text_ ]
 
 
 functionDropdown : Html Msg
@@ -346,8 +345,8 @@ functionDropdown =
             [ onInput ChangeFunction ]
             [ option [ value "StepFunction" ] [ text "Step function" ]
             , option [ value "SquareFunction" ] [ text "Square function" ]
-            , option [ value "CosFunction" ] [ text "cos(x)" ]
-            , option [ value "SinFunction2D" ] [ text "x + i sin x" ]
+            , option [ value "CosFunction" ] [ text "1D Cosine" ]
+            , option [ value "SinFunction2D" ] [ text "2D Sine" ]
             , option [ value "Line" ] [ text "Line" ]
             , option [ value "Parabola" ] [ text "Parabola" ]
             ]
@@ -516,10 +515,10 @@ distTransform zoom float =
     String.fromFloat (abs (float * 100 / zoom / 2))
 
 
-numInput : (String -> Msg) -> String -> String -> String -> Html Msg
-numInput changer val lab step_ =
+numInput : (String -> Msg) -> String -> String -> Html Msg -> Html Msg
+numInput changer val step_ lab =
     Html.span []
-        [ label [] [ text lab ]
+        [ label [] [ lab ]
         , divClass "input-group"
             [ input
                 [ class "numberInput form-control"
