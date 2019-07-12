@@ -379,8 +379,19 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, show
             toCartesian offset
     in
     svg [ viewBox "-10 16 120 200" ] <|
-        rect [ fill "black", x "-100", y "-100", width "500", height "500" ] []
-            :: List.concatMap
+        [ rect [ fill "black", x "-100", y "-100", width "500", height "500" ] []
+        , if showIntendedShape then
+            Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
+
+          else
+            div [] []
+        , if showTracedShape then
+            Html.Lazy.lazy4 plotEstimatedFunction offset zoom constantsDict final
+
+          else
+            div [] []
+        ]
+            ++ List.concatMap
                 (\n ->
                     let
                         current =
@@ -408,16 +419,6 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, show
                 )
                 (List.range 0 final)
             ++ [ makeCircle offset finalPoint (0.03 / 2 * zoom) "none" "green" zoom
-               , if showIntendedShape then
-                    Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
-
-                 else
-                    div [] []
-               , if showTracedShape then
-                    Html.Lazy.lazy4 plotEstimatedFunction offset zoom constantsDict final
-
-                 else
-                    div [] []
                ]
 
 
