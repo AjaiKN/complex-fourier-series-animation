@@ -14,6 +14,12 @@ import Task
 import Time
 
 
+
+--FOURIER SERIES CALCULATIONS
+
+
+{-| All the possible functions in the dropdown.
+-}
 type FunctionName
     = SquareFunction
     | CosFunction
@@ -23,6 +29,33 @@ type FunctionName
     | Parabola
 
 
+strToFunctionName : String -> FunctionName
+strToFunctionName str =
+    case str of
+        "SquareFunction" ->
+            SquareFunction
+
+        "CosFunction" ->
+            CosFunction
+
+        "SinFunction2D" ->
+            SinFunction2D
+
+        "StepFunction" ->
+            StepFunction
+
+        "Line" ->
+            Line
+
+        "Parabola" ->
+            Parabola
+
+        _ ->
+            StepFunction
+
+
+{-| Apply one of the functions that has a FunctionName.
+-}
 getFunction : FunctionName -> Float -> Complex
 getFunction funName t1 =
     let
@@ -79,16 +112,25 @@ getFunction funName t1 =
             complex (t * 2 - 1) (2 * (t * 2 - 1) ^ 2 - 1)
 
 
+{-| The range of values used as inputs for the averages calculated by constantN.
+-}
 myRange : Array Float
 myRange =
     Array.fromList <| List.map (toFloat >> (*) 0.001) (List.range 0 999)
 
 
+{-| Mean of an Array of Complex numbers (used by constantN).
+-}
 average : Array Complex -> Complex
 average arr =
     divide (Array.foldl add zero arr) (Array.length arr |> toFloat |> real)
 
 
+{-| Calculate the constants used for the terms of the Fourier series.
+c\_n = integral from 0 to 1 of (exp(-2pi\_n\_t)\*f(t)) dt
+To estimate this integral, we take the average of the expression as t ranges
+from 0 to 1.
+-}
 constantN : (Float -> Complex) -> Int -> Complex
 constantN f n =
     average <|
@@ -97,17 +139,26 @@ constantN f n =
             myRange
 
 
+{-| Memoize all the values of constantN we're going to use and put them into
+a Dict so that we don't have to calculate them multiple times.
+-}
 getDict : FunctionName -> Dict Int Complex
 getDict funName =
     Dict.fromList <|
         List.map (\n -> ( n, constantN (getFunction funName) n )) (List.range -50 50)
 
 
+{-| Calculate the nth term of the Fourier series. (n can be negative.)
+nth term = c\_n \* exp(2\_pi\_)
+-}
 term : Dict Int Complex -> Int -> Float -> Complex
 term dict n t =
     multiply (Dict.get n dict |> Maybe.withDefault zero) (exp (imaginary (2.0 * pi * toFloat n * t)))
 
 
+{-| So that we include the negative terms too.
+0, -1, 1, -2, 2, -3, 3, ...
+-}
 backAndForthTermNum : Int -> Int
 backAndForthTermNum n =
     --0,1,-1,2,-2,3,-3,...
@@ -118,6 +169,10 @@ backAndForthTermNum n =
         -(n // 2 + 1)
 
 
+{-| Find the Fourier series value to the nth term, except going back and forth
+using backAndForthTermNum.
+This is the position of the head of the nth vector.
+-}
 sumToTerm : Dict Int Complex -> Int -> Float -> Complex
 sumToTerm dict n t =
     List.foldl
@@ -133,6 +188,7 @@ sumToTerm dict n t =
 -- MAIN
 
 
+main : Program () Model Msg
 main =
     Browser.element
         { init = init
@@ -194,7 +250,7 @@ type Msg
     | NumVectors String
     | Zoom String
     | ToggleFollowFinalPoint
-    | ChangeFunction String
+    | ChangeFunction FunctionName
     | ToggleShowCircles
     | ToggleShowIntendedShape
     | ToggleShowTracedShape
@@ -248,31 +304,7 @@ update msg model =
             , Cmd.none
             )
 
-        ChangeFunction str ->
-            let
-                functionName =
-                    case str of
-                        "SquareFunction" ->
-                            SquareFunction
-
-                        "CosFunction" ->
-                            CosFunction
-
-                        "SinFunction2D" ->
-                            SinFunction2D
-
-                        "StepFunction" ->
-                            StepFunction
-
-                        "Line" ->
-                            Line
-
-                        "Parabola" ->
-                            Parabola
-
-                        _ ->
-                            StepFunction
-            in
+        ChangeFunction functionName ->
             ( { model
                 | sinceStart = 0
                 , functionName = functionName
@@ -286,6 +318,8 @@ update msg model =
 -- SUBSCRIPTIONS
 
 
+{-| Send a Tick message every 16 milliseconds.
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Time.every 16 Tick
@@ -342,7 +376,7 @@ functionDropdown =
     div []
         [ label [] [ text "Function: " ]
         , select
-            [ onInput ChangeFunction ]
+            [ onInput (ChangeFunction << strToFunctionName) ]
             [ option [ value "StepFunction" ] [ text "Step function" ]
             , option [ value "SquareFunction" ] [ text "Square function" ]
             , option [ value "CosFunction" ] [ text "1D Cosine" ]
@@ -379,12 +413,17 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, show
             toCartesian offset
     in
     svg [ viewBox "-10 16 120 200" ] <|
-        [ rect [ fill "black", x "-100", y "-100", width "500", height "500" ] []
+        [ --rectangle to create black background
+          rect [ fill "black", x "-100", y "-100", width "500", height "500" ] []
+
+        --draw intended function (if box is checked)
         , if showIntendedShape then
             Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
 
           else
             div [] []
+
+        --draw traced function (if box is checked)
         , if showTracedShape then
             Html.Lazy.lazy4 plotEstimatedFunction offset zoom constantsDict final
 
@@ -400,20 +439,26 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, show
                         distanceToNext =
                             (Complex.toPolar (term constantsDict (backAndForthTermNum (n + 1)) time)).abs
                     in
+                    --Don't bother drawing the vector if the magnitued is too small
                     if distanceToNext < 0.0001 then
                         []
 
                     else
-                        [ makeLine
+                        [ --Draw vector
+                          makeLine
                             offset
                             current
                             (sumToTerm constantsDict (n + 1) time)
                             zoom
+
+                        --Draw circle
                         , if showCircles then
                             makeCircle offset current distanceToNext "orange" "none" zoom
 
                           else
                             div [] []
+
+                        --Draw point (tiny circle)
                         , makeCircle offset current (0.015 / 2 * zoom) "none" "blue" zoom
                         ]
                 )
@@ -568,6 +613,10 @@ strToInt s =
 floatToStr : Float -> String
 floatToStr =
     String.fromFloat
+
+
+
+-- Get String options as Floats
 
 
 type alias Options =
