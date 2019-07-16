@@ -321,7 +321,7 @@ update msg model =
 {-| Send a Tick message every 16 milliseconds.
 -}
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Time.every 16 Tick
 
 
@@ -408,9 +408,6 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, show
 
             else
                 zero
-
-        offsetCartesian =
-            toCartesian offset
     in
     svg [ viewBox "-10 16 120 200" ] <|
         [ --rectangle to create black background
@@ -543,10 +540,12 @@ plotFunction color offset zoom function =
 --every frame.
 
 
+plotIntendedFunction : Complex -> Float -> FunctionName -> Svg msg
 plotIntendedFunction offset zoom functionName =
     plotFunction "green" offset zoom (getFunction functionName)
 
 
+plotEstimatedFunction : Complex -> Float -> Dict Int Complex -> Int -> Svg msg
 plotEstimatedFunction offset zoom constantsDict final =
     plotFunction "blue" offset zoom (sumToTerm constantsDict (final + 1))
 
@@ -578,12 +577,9 @@ numInput changer val step_ lab =
         ]
 
 
+divClass : String -> List (Html msg) -> Html msg
 divClass c =
     div [ class c ]
-
-
-divClass1 c thing =
-    div [ class c ] [ thing ]
 
 
 
@@ -601,18 +597,8 @@ strToFloat s =
 
 
 strToInt : String -> Int
-strToInt s =
-    case String.toInt s of
-        Just f ->
-            f
-
-        Nothing ->
-            0
-
-
-floatToStr : Float -> String
-floatToStr =
-    String.fromFloat
+strToInt =
+    Maybe.withDefault 0 << String.toInt
 
 
 
