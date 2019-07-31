@@ -29,6 +29,7 @@ type FunctionName
     | StepFunction
     | Line
     | Parabola
+    | LemniscateOfBernoulli
     | CustomFunction (Float -> Complex)
 
 
@@ -52,6 +53,9 @@ strToFunctionName str =
 
         "Parabola" ->
             Parabola
+
+        "LemniscateOfBernoulli" ->
+            LemniscateOfBernoulli
 
         _ ->
             StepFunction
@@ -113,6 +117,16 @@ getFunction funName t1 =
 
         Parabola ->
             complex (t * 2 - 1) (2 * (t * 2 - 1) ^ 2 - 1)
+
+        LemniscateOfBernoulli ->
+            let
+                t2 =
+                    t * 2 * pi
+
+                x =
+                    2 / 1.2 * sqrt 2 * cos t2 / ((sin t2 * sin t2) + 1)
+            in
+            complex x (x * sin t2)
 
         CustomFunction fun ->
             fun t
@@ -432,6 +446,7 @@ functionDropdown isCustomFunction =
             , option [ value "SinFunction2D" ] [ text "2D Sine" ]
             , option [ value "Line" ] [ text "Line" ]
             , option [ value "Parabola" ] [ text "Parabola" ]
+            , option [ value "LemniscateOfBernoulli" ] [ text "Lemniscate of Bernoulli (infinity symbol)" ]
             , option [ value "SwitchToDrawMode", Html.Attributes.selected isCustomFunction ] [ text "* Draw your own function! *" ]
             ]
         ]

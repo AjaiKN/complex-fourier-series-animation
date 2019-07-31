@@ -6,6 +6,7 @@ import Complex exposing (..)
 import Helpers exposing (..)
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (id)
+import Html.Lazy
 import Json.Decode as Decode
 import Svg exposing (rect, svg)
 import Svg.Attributes exposing (fill, height, viewBox, width, x, y)
@@ -108,23 +109,7 @@ getFunction array =
 view : Model -> Html Msg
 view model =
     div []
-        [ p []
-            [ Html.h4
-                [ Html.Attributes.style "text-align" "center"
-                , Html.Attributes.style "color" "red"
-                ]
-              <|
-                List.singleton <|
-                    text <|
-                        case model of
-                            HaventStartedYet ->
-                                "Click once to start drawing. "
-
-                            Drawing _ ->
-                                "Click again to stop drawing. "
-            , div [ Html.Attributes.style "text-align" "center" ]
-                [ text "(This probably won't work on touch devices)" ]
-            ]
+        [ Html.Lazy.lazy viewText (model /= HaventStartedYet)
         , svg
             [ viewBox "-10 16 120 200"
             , width "100%"
@@ -151,6 +136,24 @@ view model =
                 HaventStartedYet ->
                     div [] []
             ]
+        ]
+
+
+viewText haveStartedDrawing =
+    div []
+        [ Html.h4
+            [ Html.Attributes.style "text-align" "center"
+            , Html.Attributes.style "color" "red"
+            ]
+            [ text <|
+                if haveStartedDrawing then
+                    "Click again to stop drawing. "
+
+                else
+                    "Click once to start drawing. "
+            ]
+        , p [ Html.Attributes.style "text-align" "center" ]
+            [ text "(This probably won't work on touch devices)" ]
         ]
 
 
