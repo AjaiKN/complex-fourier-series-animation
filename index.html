@@ -35,6 +35,27 @@
     var app = Elm.Main.init({
       node: document.getElementById('elm')
     });
+
+    var observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        let svg = document.getElementById("drawable-svg")
+        if (svg) {
+            let point, position
+            svg.addEventListener('mousemove', (e) => {
+                point = svg.createSVGPoint()
+                point.x = e.clientX
+                point.y = e.clientY
+                position = point.matrixTransform(svg.getScreenCTM().inverse())
+
+                let event = new CustomEvent("svgmousemove", { detail: position })
+                svg.dispatchEvent(event)
+            })
+        }
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
   </script>
 </body>
 
