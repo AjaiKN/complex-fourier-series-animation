@@ -396,7 +396,7 @@ viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape 
             ]
         , divClass "col"
             [ numInputWithSlider Speed speed "0" "20" "any" <| text "Speed (cycles per minute)"
-            , numInputWithSlider Zoom zoom "0" "5" "any" <| text "Zoom"
+            , numInputWithSlider Zoom zoom "0.001" "3" "any" <| text "Zoom"
             , checkbox ToggleFollowFinalPoint (followFinalPoint == FollowFinalPoint) "green" "Follow green point (This might slow down some devices if you're showing intended or traced shapes.)"
             ]
         , divClass "col"
