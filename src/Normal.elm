@@ -370,6 +370,14 @@ viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape 
                     )
                 ]
             , numInput NumVectors numVectors "1" <| colorText "red" "Number of spinning vectors (max = 100)"
+            , input
+                [ type_ "range"
+                , Html.Attributes.min "0"
+                , Html.Attributes.max "100"
+                , value numVectors
+                , onInput NumVectors
+                ]
+                []
             , p [] [ text "Try starting with one ", colorText "red" "vector ", text "and increasing one at a time." ]
             ]
         , divClass "col"
