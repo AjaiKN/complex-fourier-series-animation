@@ -406,20 +406,12 @@ viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape 
                         "Draw your own function!"
                     )
                 ]
-            , numInput NumVectors numVectors "1" <| colorText "red" "Number of spinning vectors (max = 100)"
-            , input
-                [ type_ "range"
-                , Html.Attributes.min "0"
-                , Html.Attributes.max "100"
-                , value numVectors
-                , onInput NumVectors
-                ]
-                []
+            , numInputWithSlider NumVectors numVectors "0" "100" "1" <| colorText "red" "Number of spinning vectors (max = 100)"
             , p [] [ text "Try starting with one ", colorText "red" "vector ", text "and increasing one at a time." ]
             ]
         , divClass "col"
-            [ numInput Speed speed "any" <| text "Speed (cycles per minute)"
-            , numInput Zoom zoom "any" <| text "Zoom"
+            [ numInputWithSlider Speed speed "0" "20" "any" <| text "Speed (cycles per minute)"
+            , numInputWithSlider Zoom zoom "0" "5" "any" <| text "Zoom"
             , checkbox ToggleFollowFinalPoint (followFinalPoint == FollowFinalPoint) "green" "Follow green point (This might slow down some devices if you're showing intended or traced shapes.)"
             ]
         , divClass "col"
@@ -663,6 +655,22 @@ numInput changer val step_ lab =
                 ]
                 []
             ]
+        ]
+
+
+numInputWithSlider : (String -> Msg) -> String -> String -> String -> String -> Html Msg -> Html Msg
+numInputWithSlider changer val min max step_ lab =
+    div []
+        [ numInput changer val step_ lab
+        , input
+            [ type_ "range"
+            , Html.Attributes.min min
+            , Html.Attributes.max max
+            , step step_
+            , value val
+            , onInput changer
+            ]
+            []
         ]
 
 
