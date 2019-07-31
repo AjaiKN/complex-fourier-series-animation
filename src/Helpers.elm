@@ -1,4 +1,4 @@
-module Helpers exposing (coordTransform, coordTransformInverse, plotFunction)
+module Helpers exposing (coordTransform, coordTransformInverse, distTransform, plotFunction)
 
 import Complex exposing (..)
 import Svg exposing (..)
@@ -40,3 +40,8 @@ coordTransform offset zoom float =
 coordTransformInverse : Float -> Float -> Float -> Float
 coordTransformInverse offset zoom output =
     (output * 2 * zoom / 100) + offset - zoom
+
+
+distTransform : Float -> Float -> String
+distTransform zoom float =
+    String.fromFloat (abs (float * 100 / zoom / 2))

@@ -1,9 +1,10 @@
-module Normal exposing (FunctionName(..), Model, Msg(..), average, backAndForthTermNum, constantN, coordTransform, distTransform, getFunction, init, main, makeCircle, makeLine, myRange, subscriptions, sumToTerm, term, update, view)
+module Normal exposing (FunctionName(..), Model, Msg(..), average, backAndForthTermNum, constantN, getFunction, init, main, makeCircle, makeLine, myRange, subscriptions, sumToTerm, term, update, view)
 
 import Array exposing (Array)
 import Browser
 import Complex exposing (..)
 import Dict exposing (Dict)
+import Helpers exposing (..)
 import Html exposing (Html, div, input, label, option, p, select, span, text)
 import Html.Attributes exposing (checked, class, step, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -598,16 +599,6 @@ plotIntendedFunction offset zoom functionName =
 plotEstimatedFunction : Complex -> Float -> Dict Int Complex -> Int -> Svg msg
 plotEstimatedFunction offset zoom constantsDict final =
     plotFunction "blue" offset zoom (sumToTerm constantsDict (final + 1))
-
-
-coordTransform : Float -> Float -> Float -> String
-coordTransform offset zoom float =
-    String.fromFloat ((float + zoom - offset) * 100 / zoom / 2)
-
-
-distTransform : Float -> Float -> String
-distTransform zoom float =
-    String.fromFloat (abs (float * 100 / zoom / 2))
 
 
 numInput : (String -> Msg) -> String -> String -> Html Msg -> Html Msg
