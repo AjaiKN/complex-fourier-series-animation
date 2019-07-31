@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <title>Complex Fourier Series Animation</title>
   <script src="elm.js"></script>
+  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
@@ -32,24 +33,68 @@
 
   <div id="elm"></div>
   <script>
+    "use strict";
+
     var app = Elm.Main.init({
       node: document.getElementById('elm')
     });
 
+    function getMousePosition(svg, e) {
+      let point = svg.createSVGPoint()
+      point.x = e.clientX
+      point.y = e.clientY
+      return point.matrixTransform(svg.getScreenCTM().inverse())
+    }
+
+    function subtractSvgPoints(svg, p1, p2) {
+      let ret = svg.createSVGPoint()
+      ret.x = p1.x - p2.x
+      ret.y = p1.y - p2.y
+      return ret
+    }
+
+    let dragging = false
+    let oldMousePos
+
     var observer = new MutationObserver(function (mutations) {
       mutations.forEach(function (mutation) {
-        let svg = document.getElementById("drawable-svg")
-        if (svg) {
-            let point, position
-            svg.addEventListener('mousemove', (e) => {
-                point = svg.createSVGPoint()
-                point.x = e.clientX
-                point.y = e.clientY
-                position = point.matrixTransform(svg.getScreenCTM().inverse())
+        {
+          let svg = document.getElementById("drawable-svg")
+          if (svg) {
+              svg.addEventListener('mousemove', (e) => {
+                  let position = getMousePosition(svg, e)
+                  let event = new CustomEvent("svgmousemove", { detail: position })
+                  svg.dispatchEvent(event)
+              })
+          }
+        }
 
-                let event = new CustomEvent("svgmousemove", { detail: position })
+        {
+          let svg = document.getElementById("draggable-svg")
+          if (svg) {
+            function startDrag(evt) {
+              dragging = true
+              oldMousePos = getMousePosition(svg, evt)
+            }
+            function drag(evt) {
+              if (dragging) {
+                let position = getMousePosition(svg, evt)
+                let difference = subtractSvgPoints(svg, oldMousePos, position)
+                console.log(difference)
+                let event = new CustomEvent("svgdrag", { detail: difference })
                 svg.dispatchEvent(event)
-            })
+                oldMousePos = position
+              }
+            }
+            function endDrag(evt) {
+              dragging = false
+            }
+
+            svg.addEventListener('mousedown', startDrag);
+            svg.addEventListener('mousemove', drag);
+            svg.addEventListener('mouseup', endDrag);
+            svg.addEventListener('mouseleave', endDrag);
+          }
         }
       });
     });

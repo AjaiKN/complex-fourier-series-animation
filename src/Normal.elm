@@ -6,9 +6,10 @@ import Complex exposing (..)
 import Dict exposing (Dict)
 import Helpers exposing (..)
 import Html exposing (Html, div, input, label, option, p, select, span, text)
-import Html.Attributes exposing (checked, class, step, type_, value)
-import Html.Events exposing (onClick, onInput)
+import Html.Attributes exposing (checked, class, id, step, type_, value)
+import Html.Events as Events exposing (onClick, onInput)
 import Html.Lazy
+import Json.Decode as Decode
 import Svg exposing (Svg, circle, line, polygon, rect, svg)
 import Svg.Attributes exposing (cx, cy, fill, height, points, r, stroke, strokeWidth, viewBox, width, x, x1, x2, y, y1, y2)
 import Task
@@ -213,13 +214,18 @@ type alias Model =
     , speed : String
     , numVectors : String
     , zoom : String
-    , followFinalPoint : Bool
+    , followFinalPoint : Offsetting
     , functionName : FunctionName
     , constantsDict : Dict Int Complex
     , showCircles : Bool
     , showIntendedShape : Bool
     , showTracedShape : Bool
     }
+
+
+type Offsetting
+    = FollowFinalPoint
+    | ConstantOffset Complex
 
 
 init : () -> ( Model, Cmd Msg )
@@ -233,7 +239,7 @@ init _ =
       , speed = "8"
       , numVectors = "40"
       , zoom = "2"
-      , followFinalPoint = False
+      , followFinalPoint = ConstantOffset zero
       , functionName = defaultFunction
       , constantsDict = getDict defaultFunction
       , showCircles = True
@@ -260,6 +266,7 @@ type Msg
     | ToggleShowIntendedShape
     | ToggleShowTracedShape
     | SwitchToDrawMode
+    | ChangeOffsetBy Float Float
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -291,7 +298,15 @@ update msg model =
             )
 
         ToggleFollowFinalPoint ->
-            ( { model | followFinalPoint = not model.followFinalPoint }
+            ( { model
+                | followFinalPoint =
+                    case model.followFinalPoint of
+                        FollowFinalPoint ->
+                            ConstantOffset zero
+
+                        ConstantOffset _ ->
+                            FollowFinalPoint
+              }
             , Cmd.none
             )
 
@@ -317,6 +332,27 @@ update msg model =
                 , constantsDict = getDict functionName
               }
             , Task.perform InitialTime Time.now
+            )
+
+        ChangeOffsetBy re im ->
+            ( case model.followFinalPoint of
+                FollowFinalPoint ->
+                    model
+
+                ConstantOffset offset ->
+                    let
+                        { zoom } =
+                            getOptions model
+                    in
+                    { model
+                        | followFinalPoint =
+                            ConstantOffset <|
+                                add offset <|
+                                    complex
+                                        (distTransformInverse zoom re)
+                                        (distTransformInverse zoom im)
+                    }
+            , Cmd.none
             )
 
         -- This is handled in Main
@@ -356,7 +392,7 @@ view ({ speed, numVectors, zoom, followFinalPoint, showCircles, showIntendedShap
         ]
 
 
-viewInputs : String -> String -> String -> Bool -> Bool -> Bool -> Bool -> Bool -> Html Msg
+viewInputs : String -> String -> String -> Offsetting -> Bool -> Bool -> Bool -> Bool -> Html Msg
 viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape showTracedShape isCustomFunction =
     divClass "row"
         [ divClass "col"
@@ -384,7 +420,7 @@ viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape 
         , divClass "col"
             [ numInput Speed speed "any" <| text "Speed (cycles per minute)"
             , numInput Zoom zoom "any" <| text "Zoom"
-            , checkbox ToggleFollowFinalPoint followFinalPoint "green" "Follow green point (This might slow down some devices if you're showing intended or traced shapes.)"
+            , checkbox ToggleFollowFinalPoint (followFinalPoint == FollowFinalPoint) "green" "Follow green point (This might slow down some devices if you're showing intended or traced shapes.)"
             ]
         , divClass "col"
             [ checkbox ToggleShowCircles showCircles "orange" "Show orange circles"
@@ -433,7 +469,7 @@ functionNameStrToMsg str =
             ChangeFunction (strToFunctionName str)
 
 
-viewAnimation : Model -> Html msg
+viewAnimation : Model -> Html Msg
 viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, showCircles, showIntendedShape, showTracedShape } as model) =
     let
         time =
@@ -449,16 +485,28 @@ viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, show
             sumToTerm constantsDict (final + 1) time
 
         offset =
-            if followFinalPoint then
-                finalPoint
+            case followFinalPoint of
+                FollowFinalPoint ->
+                    finalPoint
 
-            else
-                zero
+                ConstantOffset offset_ ->
+                    offset_
     in
     svg
         [ viewBox "-10 16 120 200"
         , width "100%"
         , height "2000"
+        , id
+            (if followFinalPoint == FollowFinalPoint then
+                "svg"
+
+             else
+                "draggable-svg"
+            )
+        , Events.on "svgdrag" <|
+            Decode.map2 ChangeOffsetBy
+                (Decode.at [ "detail", "x" ] Decode.float)
+                (Decode.at [ "detail", "y" ] Decode.float)
         ]
     <|
         [ --rectangle to create black background
