@@ -209,8 +209,7 @@ main =
 
 
 type alias Model =
-    { originalTime : Int
-    , sinceStart : Int
+    { time : Float
     , speed : String
     , numVectors : String
     , zoom : String
@@ -234,8 +233,7 @@ init _ =
         defaultFunction =
             StepFunction
     in
-    ( { originalTime = -100
-      , sinceStart = 0
+    ( { time = 0
       , speed = "8"
       , numVectors = "40"
       , zoom = "2"
@@ -246,7 +244,7 @@ init _ =
       , showIntendedShape = True
       , showTracedShape = True
       }
-    , Task.perform InitialTime Time.now
+    , Cmd.none
     )
 
 
@@ -255,8 +253,7 @@ init _ =
 
 
 type Msg
-    = InitialTime Time.Posix
-    | Tick Time.Posix
+    = Tick Time.Posix
     | Speed String
     | NumVectors String
     | Zoom String
@@ -271,34 +268,27 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        InitialTime t ->
-            ( { model | originalTime = Time.posixToMillis t, sinceStart = 0 }
-            , Cmd.none
-            )
-
-        Tick t ->
-            ( { model | sinceStart = Time.posixToMillis t - model.originalTime }
-            , Cmd.none
-            )
+    ( case msg of
+        Tick _ ->
+            let
+                { speed } =
+                    getOptions model
+            in
+            { model
+                | time = model.time + speed / 60 / 1000 * millisecondsPerFrame
+            }
 
         Speed s ->
-            ( { model | speed = s }
-            , Cmd.none
-            )
+            { model | speed = s }
 
         NumVectors s ->
-            ( { model | numVectors = s }
-            , Cmd.none
-            )
+            { model | numVectors = s }
 
         Zoom s ->
-            ( { model | zoom = s }
-            , Cmd.none
-            )
+            { model | zoom = s }
 
         ToggleFollowFinalPoint ->
-            ( { model
+            { model
                 | followFinalPoint =
                     case model.followFinalPoint of
                         FollowFinalPoint ->
@@ -306,36 +296,26 @@ update msg model =
 
                         ConstantOffset _ ->
                             FollowFinalPoint
-              }
-            , Cmd.none
-            )
+            }
 
         ToggleShowCircles ->
-            ( { model | showCircles = not model.showCircles }
-            , Cmd.none
-            )
+            { model | showCircles = not model.showCircles }
 
         ToggleShowIntendedShape ->
-            ( { model | showIntendedShape = not model.showIntendedShape }
-            , Cmd.none
-            )
+            { model | showIntendedShape = not model.showIntendedShape }
 
         ToggleShowTracedShape ->
-            ( { model | showTracedShape = not model.showTracedShape }
-            , Cmd.none
-            )
+            { model | showTracedShape = not model.showTracedShape }
 
         ChangeFunction functionName ->
-            ( { model
-                | sinceStart = 0
+            { model
+                | time = 0
                 , functionName = functionName
                 , constantsDict = getDict functionName
-              }
-            , Task.perform InitialTime Time.now
-            )
+            }
 
         ChangeOffsetBy re im ->
-            ( case model.followFinalPoint of
+            case model.followFinalPoint of
                 FollowFinalPoint ->
                     model
 
@@ -352,23 +332,28 @@ update msg model =
                                         (distTransformInverse zoom re)
                                         (distTransformInverse zoom im)
                     }
-            , Cmd.none
-            )
 
         -- This is handled in Main
         SwitchToDrawMode ->
-            ( model, Cmd.none )
+            model
+    , Cmd.none
+    )
 
 
 
 -- SUBSCRIPTIONS
 
 
-{-| Send a Tick message every 16 milliseconds.
+millisecondsPerFrame : Float
+millisecondsPerFrame =
+    16
+
+
+{-| Send a Tick message every millisecondsPerFrame milliseconds.
 -}
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Time.every 16 Tick
+    Time.every millisecondsPerFrame Tick
 
 
 
@@ -462,11 +447,8 @@ functionNameStrToMsg str =
 
 
 viewAnimation : Model -> Html Msg
-viewAnimation ({ sinceStart, followFinalPoint, functionName, constantsDict, showCircles, showIntendedShape, showTracedShape } as model) =
+viewAnimation ({ time, followFinalPoint, functionName, constantsDict, showCircles, showIntendedShape, showTracedShape } as model) =
     let
-        time =
-            toFloat sinceStart / 1000 / 60 * speed
-
         { speed, numVectors, zoom } =
             getOptions model
 
@@ -645,8 +627,8 @@ numInput : (String -> Msg) -> String -> String -> Html Msg -> Html Msg
 numInput changer val step_ lab =
     Html.span []
         [ label [] [ lab ]
-        , divClass "input-group"
-            [ input
+        , divClass1 "input-group" <|
+            input
                 [ class "numberInput form-control"
                 , onInput changer
                 , type_ "number"
@@ -654,7 +636,6 @@ numInput changer val step_ lab =
                 , step step_
                 ]
                 []
-            ]
         ]
 
 
@@ -662,21 +643,28 @@ numInputWithSlider : (String -> Msg) -> String -> String -> String -> String -> 
 numInputWithSlider changer val min max step_ lab =
     div []
         [ numInput changer val step_ lab
-        , input
-            [ type_ "range"
-            , Html.Attributes.min min
-            , Html.Attributes.max max
-            , step step_
-            , value val
-            , onInput changer
-            ]
-            []
+        , divClass1 "input-group" <|
+            input
+                [ type_ "range"
+                , class "form-control-range"
+                , Html.Attributes.min min
+                , Html.Attributes.max max
+                , step step_
+                , value val
+                , onInput changer
+                ]
+                []
         ]
 
 
 divClass : String -> List (Html msg) -> Html msg
 divClass c =
     div [ class c ]
+
+
+divClass1 : String -> Html msg -> Html msg
+divClass1 c h =
+    divClass c [ h ]
 
 
 
