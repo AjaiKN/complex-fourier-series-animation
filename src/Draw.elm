@@ -160,8 +160,3 @@ offset =
 
 zoom =
     2
-
-
-
----https://ellie-app.com/6dPLqSmmX83a1
--- https://ellie-app.com/6dWZQxhBfBya1
