@@ -278,6 +278,8 @@ type Msg
     | ToggleShowTracedShape
     | SwitchToDrawMode
     | ChangeOffsetBy Float Float
+    | ZoomIn
+    | ZoomOut
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -347,6 +349,20 @@ update msg model =
                                         (distTransformInverse zoom im)
                     }
 
+        ZoomIn ->
+            let
+                { zoom } =
+                    getOptions model
+            in
+            { model | zoom = String.fromFloat <| zoom * 0.75 }
+
+        ZoomOut ->
+            let
+                { zoom } =
+                    getOptions model
+            in
+            { model | zoom = String.fromFloat <| zoom / 0.75 }
+
         -- This is handled in Main
         SwitchToDrawMode ->
             model
@@ -410,7 +426,12 @@ viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape 
             ]
         , divClass "col"
             [ numInputWithSlider Speed speed "0" "20" "any" <| text "Speed (cycles per minute)"
-            , numInputWithSlider Zoom zoom "0.001" "3" "any" <| text "Zoom"
+            , numInputWithSlider Zoom zoom "0.001" "3" "any" <|
+                div []
+                    [ text "Zoom"
+                    , Html.button [ class "mx-1", onClick ZoomIn ] [ text "+" ]
+                    , Html.button [ class "mx-1", onClick ZoomOut ] [ text "-" ]
+                    ]
             , checkbox ToggleFollowFinalPoint (followFinalPoint == FollowFinalPoint) "green" "Follow green point (This might slow down some devices if you're showing intended or traced shapes.)"
             ]
         , divClass "col"
