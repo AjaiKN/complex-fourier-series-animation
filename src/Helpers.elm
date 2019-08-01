@@ -1,21 +1,28 @@
-module Helpers exposing (coordTransform, coordTransformInverse, distTransform, distTransformInverse, plotFunction)
+module Helpers exposing (coordTransform, coordTransformInverse, distTransform, distTransformInverse, plotFunction, plotPoints, rangeForPlottingFunctions)
 
 import Complex exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 
 
+rangeForPlottingFunctions =
+    List.map (toFloat >> (*) (1 / 1000)) (List.range 0 1000)
+
+
 plotFunction : String -> Complex -> Float -> (Float -> Complex) -> Svg msg
 plotFunction color offset zoom function =
+    plotPoints color offset zoom <|
+        List.map function rangeForPlottingFunctions
+
+
+plotPoints : String -> Complex -> Float -> List Complex -> Svg msg
+plotPoints color offset zoom pts =
     let
         offsetCartesian =
             toCartesian offset
 
-        range =
-            List.map (toFloat >> (*) (1 / 1000)) (List.range 0 1000)
-
-        pts =
-            List.map (function >> toCartesian) range
+        cartesianPoints =
+            List.map toCartesian pts
 
         pointsAsStrings =
             List.map
@@ -24,7 +31,7 @@ plotFunction color offset zoom function =
                         ++ ","
                         ++ coordTransform offsetCartesian.im zoom im
                 )
-                pts
+                cartesianPoints
 
         pointsString =
             String.join " " pointsAsStrings
