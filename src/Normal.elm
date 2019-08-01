@@ -230,10 +230,12 @@ type alias Model =
     , zoom : String
     , followFinalPoint : Offsetting
     , functionName : FunctionName
-    , constantsDict : Dict Int Complex
     , showCircles : Bool
     , showIntendedShape : Bool
     , showTracedShape : Bool
+
+    -- For performance only: so that we don't have to recompute stuff
+    , constantsDict : Dict Int Complex
     }
 
 
@@ -637,33 +639,6 @@ makeLine offset a1 a2 zoom =
         , strokeWidth "0.3"
         ]
         []
-
-
-plotFunction : String -> Complex -> Float -> (Float -> Complex) -> Svg msg
-plotFunction color offset zoom function =
-    let
-        offsetCartesian =
-            toCartesian offset
-
-        range =
-            List.map (toFloat >> (*) (1 / 1000)) (List.range 0 1000)
-
-        pts =
-            List.map (function >> toCartesian) range
-
-        pointsAsStrings =
-            List.map
-                (\{ re, im } ->
-                    coordTransform offsetCartesian.re zoom re
-                        ++ ","
-                        ++ coordTransform offsetCartesian.im zoom im
-                )
-                pts
-
-        pointsString =
-            String.join " " pointsAsStrings
-    in
-    polygon [ points pointsString, strokeWidth "0.35", stroke color, fill "none" ] []
 
 
 
