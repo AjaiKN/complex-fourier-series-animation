@@ -137,7 +137,7 @@ getFunction funName t1 =
 -}
 myRange : Array Float
 myRange =
-    Array.fromList <| List.map (toFloat >> (*) 0.001) (List.range 0 999)
+    Array.fromList <| List.map (toFloat >> (*) 0.0001) (List.range 0 9999)
 
 
 {-| Mean of an Array of Complex numbers (used by constantN).
@@ -163,10 +163,20 @@ constantN f n =
 {-| Memoize all the values of constantN we're going to use and put them into
 a Dict so that we don't have to calculate them multiple times.
 -}
-getDict : FunctionName -> Dict Int Complex
-getDict funName =
+getMemoizedConstantsDict : FunctionName -> Dict Int Complex
+getMemoizedConstantsDict funName =
     Dict.fromList <|
         List.map (\n -> ( n, constantN (getFunction funName) n )) (List.range -50 50)
+
+
+getMemoizedEstimatedFunctionValuesList : Dict Int Complex -> Int -> List Complex
+getMemoizedEstimatedFunctionValuesList memoizedConstantsDict numVectors =
+    List.map (sumToTerm memoizedConstantsDict numVectors) Helpers.rangeForPlottingFunctions
+
+
+getMemoizedIntendedFunctionValuesList : FunctionName -> List Complex
+getMemoizedIntendedFunctionValuesList functionName =
+    List.map (getFunction functionName) Helpers.rangeForPlottingFunctions
 
 
 {-| Calculate the nth term of the Fourier series. (n can be negative.)
@@ -235,7 +245,9 @@ type alias Model =
     , showTracedShape : Bool
 
     -- For performance only: so that we don't have to recompute stuff
-    , constantsDict : Dict Int Complex
+    , memoizedConstantsDict : Dict Int Complex
+    , memoizedEstimatedFunctionValuesList : List Complex
+    , memoizedIntendedFunctionValuesList : List Complex
     }
 
 
@@ -249,17 +261,25 @@ init _ =
     let
         defaultFunction =
             StepFunction
+
+        memoizedConstantsDict =
+            getMemoizedConstantsDict defaultFunction
+
+        numVectors =
+            40
     in
     ( { time = 0
       , speed = "8"
-      , numVectors = "40"
+      , numVectors = String.fromFloat numVectors
       , zoom = "2"
       , followFinalPoint = ConstantOffset zero
       , functionName = defaultFunction
-      , constantsDict = getDict defaultFunction
       , showCircles = True
       , showIntendedShape = True
       , showTracedShape = True
+      , memoizedConstantsDict = memoizedConstantsDict
+      , memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList memoizedConstantsDict numVectors
+      , memoizedIntendedFunctionValuesList = getMemoizedIntendedFunctionValuesList defaultFunction
       }
     , Cmd.none
     )
@@ -303,7 +323,18 @@ update msg model =
             { model | speed = s }
 
         NumVectors s ->
-            { model | numVectors = s }
+            let
+                newMod =
+                    { model
+                        | numVectors = s
+                    }
+
+                { numVectors } =
+                    getOptions newMod
+            in
+            { newMod
+                | memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList model.memoizedConstantsDict numVectors
+            }
 
         Zoom s ->
             { model | zoom = s }
@@ -329,10 +360,19 @@ update msg model =
             { model | showTracedShape = not model.showTracedShape }
 
         ChangeFunction functionName ->
+            let
+                { numVectors } =
+                    getOptions model
+
+                memoizedConstantsDict =
+                    getMemoizedConstantsDict functionName
+            in
             { model
                 | time = 0
                 , functionName = functionName
-                , constantsDict = getDict functionName
+                , memoizedConstantsDict = memoizedConstantsDict
+                , memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList memoizedConstantsDict numVectors
+                , memoizedIntendedFunctionValuesList = getMemoizedIntendedFunctionValuesList functionName
             }
 
         ChangeOffsetBy re im ->
@@ -508,16 +548,13 @@ functionNameStrToMsg str =
 
 
 viewAnimation : Model -> Html Msg
-viewAnimation ({ time, followFinalPoint, functionName, constantsDict, showCircles, showIntendedShape, showTracedShape } as model) =
+viewAnimation ({ time, followFinalPoint, functionName, showCircles, showIntendedShape, showTracedShape, memoizedConstantsDict, memoizedEstimatedFunctionValuesList, memoizedIntendedFunctionValuesList } as model) =
     let
         { speed, numVectors, zoom } =
             getOptions model
 
-        final =
-            numVectors - 1
-
         finalPoint =
-            sumToTerm constantsDict (final + 1) time
+            sumToTerm memoizedConstantsDict numVectors time
 
         offset =
             case followFinalPoint of
@@ -549,14 +586,14 @@ viewAnimation ({ time, followFinalPoint, functionName, constantsDict, showCircle
 
         --draw intended function (if box is checked)
         , if showIntendedShape then
-            Html.Lazy.lazy3 plotIntendedFunction offset zoom functionName
+            plotPoints "green" offset zoom memoizedIntendedFunctionValuesList
 
           else
             div [] []
 
         --draw traced function (if box is checked)
         , if showTracedShape then
-            Html.Lazy.lazy4 plotEstimatedFunction offset zoom constantsDict final
+            plotPoints "blue" offset zoom memoizedEstimatedFunctionValuesList
 
           else
             div [] []
@@ -565,10 +602,10 @@ viewAnimation ({ time, followFinalPoint, functionName, constantsDict, showCircle
                 (\n ->
                     let
                         current =
-                            sumToTerm constantsDict n time
+                            sumToTerm memoizedConstantsDict n time
 
                         distanceToNext =
-                            (Complex.toPolar (term constantsDict (backAndForthTermNum (n + 1)) time)).abs
+                            (Complex.toPolar (term memoizedConstantsDict (backAndForthTermNum (n + 1)) time)).abs
                     in
                     --Don't bother drawing the vector if the magnitued is too small
                     if distanceToNext < 0.0001 then
@@ -579,7 +616,7 @@ viewAnimation ({ time, followFinalPoint, functionName, constantsDict, showCircle
                           makeLine
                             offset
                             current
-                            (sumToTerm constantsDict (n + 1) time)
+                            (sumToTerm memoizedConstantsDict (n + 1) time)
                             zoom
 
                         --Draw circle
@@ -593,7 +630,7 @@ viewAnimation ({ time, followFinalPoint, functionName, constantsDict, showCircle
                         , makeCircle offset current (0.015 / 2 * zoom) "none" "blue" zoom
                         ]
                 )
-                (List.range 0 final)
+                (List.range 0 (numVectors - 1))
             ++ [ makeCircle offset finalPoint (0.03 / 2 * zoom) "none" "green" zoom
                ]
 
@@ -639,22 +676,6 @@ makeLine offset a1 a2 zoom =
         , strokeWidth "0.3"
         ]
         []
-
-
-
---The plotIntendedFunction and plotEstimatedFunction functions are so that
---we can use Html.Lazy so that we don't have to recalculate these polygons
---every frame.
-
-
-plotIntendedFunction : Complex -> Float -> FunctionName -> Svg msg
-plotIntendedFunction offset zoom functionName =
-    plotFunction "green" offset zoom (getFunction functionName)
-
-
-plotEstimatedFunction : Complex -> Float -> Dict Int Complex -> Int -> Svg msg
-plotEstimatedFunction offset zoom constantsDict final =
-    plotFunction "blue" offset zoom (sumToTerm constantsDict (final + 1))
 
 
 numInput : (String -> Msg) -> String -> String -> Html Msg -> Html Msg

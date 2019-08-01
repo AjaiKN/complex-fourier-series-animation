@@ -1,18 +1,13 @@
-module Helpers exposing (coordTransform, coordTransformInverse, distTransform, distTransformInverse, plotFunction, plotPoints, rangeForPlottingFunctions)
+module Helpers exposing (coordTransform, coordTransformInverse, distTransform, distTransformInverse, plotPoints, rangeForPlottingFunctions)
 
 import Complex exposing (..)
+import Html
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 
 
 rangeForPlottingFunctions =
     List.map (toFloat >> (*) (1 / 1000)) (List.range 0 1000)
-
-
-plotFunction : String -> Complex -> Float -> (Float -> Complex) -> Svg msg
-plotFunction color offset zoom function =
-    plotPoints color offset zoom <|
-        List.map function rangeForPlottingFunctions
 
 
 plotPoints : String -> Complex -> Float -> List Complex -> Svg msg
@@ -36,7 +31,11 @@ plotPoints color offset zoom pts =
         pointsString =
             String.join " " pointsAsStrings
     in
-    polygon [ points pointsString, strokeWidth "0.35", stroke color, fill "none" ] []
+    if List.isEmpty pts then
+        Html.div [] []
+
+    else
+        polygon [ points pointsString, strokeWidth "0.35", stroke color, fill "none" ] []
 
 
 coordTransform : Float -> Float -> Float -> String

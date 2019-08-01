@@ -131,7 +131,7 @@ view model =
               rect [ fill "black", x "-100", y "-100", width "500", height "500" ] []
             , case model of
                 Drawing mod ->
-                    plotFunction "green" offset zoom (getFunction mod.points)
+                    plotPoints "green" offset zoom (Array.toList mod.points)
 
                 HaventStartedYet ->
                     div [] []
