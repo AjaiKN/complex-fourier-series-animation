@@ -4808,8 +4808,8 @@ var author$project$Normal$myRange = elm$core$Array$fromList(
 		A2(
 			elm$core$Basics$composeR,
 			elm$core$Basics$toFloat,
-			elm$core$Basics$mul(1.0e-4)),
-		A2(elm$core$List$range, 0, 9999)));
+			elm$core$Basics$mul(1.0e-3)),
+		A2(elm$core$List$range, 0, 999)));
 var elm$core$Elm$JsArray$map = _JsArray_map;
 var elm$core$Array$map = F2(
 	function (func, _n0) {
@@ -6864,7 +6864,6 @@ var harrysarson$elm_complex$Complex$toPolar = harrysarson$elm_complex$Internal$C
 var author$project$Normal$viewAnimation = function (model) {
 	var time = model.time;
 	var followFinalPoint = model.followFinalPoint;
-	var functionName = model.functionName;
 	var showCircles = model.showCircles;
 	var showIntendedShape = model.showIntendedShape;
 	var showTracedShape = model.showTracedShape;

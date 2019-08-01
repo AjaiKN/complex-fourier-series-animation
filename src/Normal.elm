@@ -137,7 +137,7 @@ getFunction funName t1 =
 -}
 myRange : Array Float
 myRange =
-    Array.fromList <| List.map (toFloat >> (*) 0.0001) (List.range 0 9999)
+    Array.fromList <| List.map (toFloat >> (*) 0.001) (List.range 0 999)
 
 
 {-| Mean of an Array of Complex numbers (used by constantN).
@@ -548,7 +548,7 @@ functionNameStrToMsg str =
 
 
 viewAnimation : Model -> Html Msg
-viewAnimation ({ time, followFinalPoint, functionName, showCircles, showIntendedShape, showTracedShape, memoizedConstantsDict, memoizedEstimatedFunctionValuesList, memoizedIntendedFunctionValuesList } as model) =
+viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTracedShape, memoizedConstantsDict, memoizedEstimatedFunctionValuesList, memoizedIntendedFunctionValuesList } as model) =
     let
         { speed, numVectors, zoom } =
             getOptions model
