@@ -2,6 +2,7 @@ module Normal exposing (FunctionName(..), Model, Msg(..), average, backAndForthT
 
 import Array exposing (Array)
 import Browser
+import Browser.Events
 import Complex exposing (..)
 import Dict exposing (Dict)
 import Helpers exposing (..)
@@ -267,7 +268,8 @@ init _ =
 
 
 type Msg
-    = Tick Time.Posix
+    = NoOp
+    | Tick Time.Posix
     | Speed String
     | NumVectors String
     | Zoom String
@@ -366,6 +368,9 @@ update msg model =
         -- This is handled in Main
         SwitchToDrawMode ->
             model
+
+        NoOp ->
+            model
     , Cmd.none
     )
 
@@ -383,7 +388,29 @@ millisecondsPerFrame =
 -}
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Time.every millisecondsPerFrame Tick
+    Sub.batch
+        [ Time.every millisecondsPerFrame Tick
+        , Browser.Events.onKeyDown <|
+            Decode.map
+                (\s ->
+                    case s of
+                        "=" ->
+                            ZoomIn
+
+                        "+" ->
+                            ZoomIn
+
+                        "-" ->
+                            ZoomOut
+
+                        "_" ->
+                            ZoomOut
+
+                        _ ->
+                            NoOp
+                )
+                (Decode.field "key" Decode.string)
+        ]
 
 
 
