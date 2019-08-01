@@ -269,7 +269,7 @@ init _ =
 
 type Msg
     = NoOp
-    | Tick Time.Posix
+    | Tick Float
     | Speed String
     | NumVectors String
     | Zoom String
@@ -287,13 +287,14 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ( case msg of
-        Tick _ ->
+        -- deltaTime is time in seconds since previous frame
+        Tick deltaTime ->
             let
                 { speed } =
                     getOptions model
             in
             { model
-                | time = model.time + speed / 60 / 1000 * millisecondsPerFrame
+                | time = model.time + speed / 60 / 1000 * deltaTime
             }
 
         Speed s ->
@@ -379,17 +380,12 @@ update msg model =
 -- SUBSCRIPTIONS
 
 
-millisecondsPerFrame : Float
-millisecondsPerFrame =
-    16
-
-
 {-| Send a Tick message every millisecondsPerFrame milliseconds.
 -}
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Time.every millisecondsPerFrame Tick
+        [ Browser.Events.onAnimationFrameDelta Tick
         , Browser.Events.onKeyDown <|
             Decode.map
                 (\s ->
