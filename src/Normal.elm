@@ -5,7 +5,7 @@ import Browser
 import Browser.Events
 import Complex exposing (..)
 import Dict exposing (Dict)
-import Fourier exposing (backAndForthTermNum, getMemoizedConstantsDict, sumToTerm, term)
+import Fourier exposing (MemoizedConstants, getMemoizedConstantsDict, sumToTerm, term)
 import FunctionName exposing (FunctionName)
 import Helpers exposing (..)
 import Html exposing (Html, div, input, label, option, p, select, span, text)
@@ -23,9 +23,9 @@ import Time
 --FOURIER SERIES CALCULATIONS
 
 
-getMemoizedEstimatedFunctionValuesList : Dict Int Complex -> Int -> List Complex
-getMemoizedEstimatedFunctionValuesList memoizedConstantsDict numVectors =
-    List.map (sumToTerm memoizedConstantsDict numVectors) Helpers.rangeForPlottingFunctions
+getMemoizedEstimatedFunctionValuesList : MemoizedConstants -> Int -> List Complex
+getMemoizedEstimatedFunctionValuesList memoizedConstants numVectors =
+    List.map (sumToTerm memoizedConstants numVectors) Helpers.rangeForPlottingFunctions
 
 
 getMemoizedIntendedFunctionValuesList : FunctionName -> List Complex
@@ -63,7 +63,7 @@ type alias Model =
     , showTracedShape : Bool
 
     -- For performance only: so that we don't have to recompute stuff
-    , memoizedConstantsDict : Dict Int Complex
+    , memoizedConstantsDict : MemoizedConstants
     , memoizedEstimatedFunctionValuesList : List Complex
     , memoizedIntendedFunctionValuesList : List Complex
     }
@@ -418,7 +418,7 @@ viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTra
                             sumToTerm memoizedConstantsDict n time
 
                         distanceToNext =
-                            (Complex.toPolar (term memoizedConstantsDict (backAndForthTermNum (n + 1)) time)).abs
+                            (Complex.toPolar (term memoizedConstantsDict (n + 1) time)).abs
                     in
                     --Don't bother drawing the vector if the magnitued is too small
                     if distanceToNext < 0.0001 then
