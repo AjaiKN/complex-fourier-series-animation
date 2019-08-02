@@ -1,10 +1,11 @@
-module Normal exposing (FunctionName(..), Model, Msg(..), average, backAndForthTermNum, constantN, getFunction, init, main, makeCircle, makeLine, myRange, subscriptions, sumToTerm, term, update, view)
+module Normal exposing (Model, Msg(..), average, backAndForthTermNum, constantN, init, main, makeCircle, makeLine, myRange, subscriptions, sumToTerm, term, update, view)
 
 import Array exposing (Array)
 import Browser
 import Browser.Events
 import Complex exposing (..)
 import Dict exposing (Dict)
+import FunctionName exposing (FunctionName)
 import Helpers exposing (..)
 import Html exposing (Html, div, input, label, option, p, select, span, text)
 import Html.Attributes exposing (checked, class, id, step, type_, value)
@@ -19,118 +20,6 @@ import Time
 
 
 --FOURIER SERIES CALCULATIONS
-
-
-{-| All the possible functions in the dropdown.
--}
-type FunctionName
-    = SquareFunction
-    | CosFunction
-    | SinFunction2D
-    | StepFunction
-    | Line
-    | Parabola
-    | LemniscateOfBernoulli
-    | CustomFunction (Float -> Complex)
-
-
-strToFunctionName : String -> FunctionName
-strToFunctionName str =
-    case str of
-        "SquareFunction" ->
-            SquareFunction
-
-        "CosFunction" ->
-            CosFunction
-
-        "SinFunction2D" ->
-            SinFunction2D
-
-        "StepFunction" ->
-            StepFunction
-
-        "Line" ->
-            Line
-
-        "Parabola" ->
-            Parabola
-
-        "LemniscateOfBernoulli" ->
-            LemniscateOfBernoulli
-
-        _ ->
-            StepFunction
-
-
-{-| Apply one of the functions that has a FunctionName.
--}
-getFunction : FunctionName -> Float -> Complex
-getFunction funName t1 =
-    let
-        t =
-            t1 - toFloat (floor t1)
-    in
-    case funName of
-        SquareFunction ->
-            complex
-                (if t <= 0.25 then
-                    1
-
-                 else if t <= 0.5 then
-                    3 - 8 * t
-
-                 else if t <= 0.75 then
-                    -1
-
-                 else
-                    -7 + 8 * t
-                )
-                (if t <= 0.25 then
-                    -1 + 8 * t
-
-                 else if t <= 0.5 then
-                    1
-
-                 else if t <= 0.75 then
-                    5 - 8 * t
-
-                 else
-                    -1
-                )
-
-        CosFunction ->
-            t |> turns |> cos |> real
-
-        SinFunction2D ->
-            complex
-                (t * 4 - 2)
-                (t * 3 |> turns |> sin)
-
-        StepFunction ->
-            if t < 0.5 then
-                real 1
-
-            else
-                real -1
-
-        Line ->
-            complex (2 * t - 1) (2 * t - 1)
-
-        Parabola ->
-            complex (t * 2 - 1) (2 * (t * 2 - 1) ^ 2 - 1)
-
-        LemniscateOfBernoulli ->
-            let
-                t2 =
-                    t * 2 * pi
-
-                x =
-                    2 / 1.2 * sqrt 2 * cos t2 / ((sin t2 * sin t2) + 1)
-            in
-            complex x (x * sin t2)
-
-        CustomFunction fun ->
-            fun t
 
 
 {-| The range of values used as inputs for the averages calculated by constantN.
@@ -166,7 +55,7 @@ a Dict so that we don't have to calculate them multiple times.
 getMemoizedConstantsDict : FunctionName -> Dict Int Complex
 getMemoizedConstantsDict funName =
     Dict.fromList <|
-        List.map (\n -> ( n, constantN (getFunction funName) n )) (List.range -50 50)
+        List.map (\n -> ( n, constantN (FunctionName.getFunction funName) n )) (List.range -50 50)
 
 
 getMemoizedEstimatedFunctionValuesList : Dict Int Complex -> Int -> List Complex
@@ -176,7 +65,7 @@ getMemoizedEstimatedFunctionValuesList memoizedConstantsDict numVectors =
 
 getMemoizedIntendedFunctionValuesList : FunctionName -> List Complex
 getMemoizedIntendedFunctionValuesList functionName =
-    List.map (getFunction functionName) Helpers.rangeForPlottingFunctions
+    List.map (FunctionName.getFunction functionName) Helpers.rangeForPlottingFunctions
 
 
 {-| Calculate the nth term of the Fourier series. (n can be negative.)
@@ -260,7 +149,7 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     let
         defaultFunction =
-            StepFunction
+            FunctionName.defaultFunction
 
         memoizedConstantsDict =
             getMemoizedConstantsDict defaultFunction
@@ -459,12 +348,7 @@ view : Model -> Html Msg
 view ({ speed, numVectors, zoom, followFinalPoint, showCircles, showIntendedShape, showTracedShape, functionName } as model) =
     let
         isCustomFunction =
-            case functionName of
-                CustomFunction _ ->
-                    True
-
-                _ ->
-                    False
+            FunctionName.isCustomFunction functionName
     in
     div []
         [ Html.Lazy.lazy8 viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape showTracedShape isCustomFunction
@@ -544,7 +428,7 @@ functionNameStrToMsg str =
             SwitchToDrawMode
 
         _ ->
-            ChangeFunction (strToFunctionName str)
+            ChangeFunction (FunctionName.fromString str)
 
 
 viewAnimation : Model -> Html Msg

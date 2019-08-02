@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Draw
+import FunctionName
 import Html exposing (Html)
 import Normal
 
@@ -55,7 +56,7 @@ update msg model =
                 updateIt : Normal.Model -> Normal.Model
                 updateIt =
                     Normal.update
-                        (Normal.ChangeFunction <| Normal.CustomFunction <| Draw.getFunction points)
+                        (Normal.ChangeFunction <| FunctionName.makeCustomFunction <| Draw.getFunction points)
                         >> Tuple.first
             in
             Normal.init () |> Tuple.mapBoth (updateIt >> NormalModel) (Cmd.map NormalMsg)
