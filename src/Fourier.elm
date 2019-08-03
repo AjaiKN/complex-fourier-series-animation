@@ -1,23 +1,23 @@
-module Fourier exposing (MemoizedConstants, getMemoizedConstantsDict, sumToTerm, term)
+module Fourier exposing (MemoizedConstants, getMemoizedConstants, sumToTerm, term)
 
 import Array exposing (Array)
 import Complex exposing (..)
-import Dict exposing (Dict)
 import FunctionName exposing (FunctionName, getFunction)
 
 
 type MemoizedConstants
-    = MemoizedConstants (Dict Int Complex)
+    = MemoizedConstants (Array Complex)
 
 
 {-| Memoize all the values of constantN we're going to use and put them into
-a Dict so that we don't have to calculate them multiple times.
+an Array so that we don't have to calculate them multiple times.
 -}
-getMemoizedConstantsDict : FunctionName -> MemoizedConstants
-getMemoizedConstantsDict funName =
-    MemoizedConstants <|
-        Dict.fromList <|
-            List.map (\n -> ( n, constantN (FunctionName.getFunction funName) n )) (List.range -50 50)
+getMemoizedConstants : FunctionName -> MemoizedConstants
+getMemoizedConstants funName =
+    List.range 0 100
+        |> List.map (\n -> constantN (FunctionName.getFunction funName) (backAndForthTermNum n))
+        |> Array.fromList
+        |> MemoizedConstants
 
 
 {-| So that we include the negative terms too.
@@ -33,8 +33,8 @@ backAndForthTermNum n =
 
 
 get : Int -> MemoizedConstants -> Complex
-get n (MemoizedConstants dict) =
-    Dict.get n dict
+get n (MemoizedConstants arr) =
+    Array.get n arr
         |> Maybe.withDefault zero
 
 
@@ -65,20 +65,13 @@ constantN f n =
             myRange
 
 
-{-| Calculate the nth term of the Fourier series. (n can be negative.)
-nth term = c\_n \* exp(2\_pi\_)
--}
-fourierTerm : MemoizedConstants -> Int -> Float -> Complex
-fourierTerm memoizedConstants n t =
-    multiply (get n memoizedConstants) (exp (imaginary (2.0 * pi * toFloat n * t)))
-
-
-{-| Calculate the nth Fourier term, except going back and forth using
-backAndForthTermNum.
+{-| Calculate the nth term of the Fourier series, except
+using backAndForthTermNum.
+nth term = c\_n \* exp(2pi \* i \* nt)
 -}
 term : MemoizedConstants -> Int -> Float -> Complex
 term memoizedConstants n t =
-    fourierTerm memoizedConstants (backAndForthTermNum n) t
+    multiply (get n memoizedConstants) (exp (imaginary (2.0 * pi * toFloat (backAndForthTermNum n) * t)))
 
 
 {-| Find the Fourier series value to the nth term, except going back and forth

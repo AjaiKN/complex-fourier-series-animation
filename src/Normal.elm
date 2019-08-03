@@ -1,11 +1,9 @@
 module Normal exposing (Model, Msg(..), init, main, subscriptions, update, view)
 
-import Array exposing (Array)
 import Browser
 import Browser.Events
 import Complex exposing (..)
-import Dict exposing (Dict)
-import Fourier exposing (MemoizedConstants, getMemoizedConstantsDict, sumToTerm, term)
+import Fourier exposing (MemoizedConstants, getMemoizedConstants, sumToTerm, term)
 import FunctionName exposing (FunctionName)
 import Helpers exposing (..)
 import Html exposing (Html, div, input, label, option, p, select, span, text)
@@ -63,7 +61,7 @@ type alias Model =
     , showTracedShape : Bool
 
     -- For performance only: so that we don't have to recompute stuff
-    , memoizedConstantsDict : MemoizedConstants
+    , memoizedConstants : MemoizedConstants
     , memoizedEstimatedFunctionValuesList : List Complex
     , memoizedIntendedFunctionValuesList : List Complex
     }
@@ -80,8 +78,8 @@ init _ =
         defaultFunction =
             FunctionName.defaultFunction
 
-        memoizedConstantsDict =
-            getMemoizedConstantsDict defaultFunction
+        memoizedConstants =
+            getMemoizedConstants defaultFunction
 
         numVectors =
             40
@@ -95,8 +93,8 @@ init _ =
       , showCircles = True
       , showIntendedShape = True
       , showTracedShape = True
-      , memoizedConstantsDict = memoizedConstantsDict
-      , memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList memoizedConstantsDict numVectors
+      , memoizedConstants = memoizedConstants
+      , memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList memoizedConstants numVectors
       , memoizedIntendedFunctionValuesList = getMemoizedIntendedFunctionValuesList defaultFunction
       }
     , Cmd.none
@@ -151,7 +149,7 @@ update msg model =
                     getOptions newMod
             in
             { newMod
-                | memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList model.memoizedConstantsDict numVectors
+                | memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList model.memoizedConstants numVectors
             }
 
         Zoom s ->
@@ -182,14 +180,14 @@ update msg model =
                 { numVectors } =
                     getOptions model
 
-                memoizedConstantsDict =
-                    getMemoizedConstantsDict functionName
+                memoizedConstants =
+                    getMemoizedConstants functionName
             in
             { model
                 | time = 0
                 , functionName = functionName
-                , memoizedConstantsDict = memoizedConstantsDict
-                , memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList memoizedConstantsDict numVectors
+                , memoizedConstants = memoizedConstants
+                , memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList memoizedConstants numVectors
                 , memoizedIntendedFunctionValuesList = getMemoizedIntendedFunctionValuesList functionName
             }
 
@@ -361,13 +359,13 @@ functionNameStrToMsg str =
 
 
 viewAnimation : Model -> Html Msg
-viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTracedShape, memoizedConstantsDict, memoizedEstimatedFunctionValuesList, memoizedIntendedFunctionValuesList } as model) =
+viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTracedShape, memoizedConstants, memoizedEstimatedFunctionValuesList, memoizedIntendedFunctionValuesList } as model) =
     let
         { speed, numVectors, zoom } =
             getOptions model
 
         finalPoint =
-            sumToTerm memoizedConstantsDict numVectors time
+            sumToTerm memoizedConstants numVectors time
 
         offset =
             case followFinalPoint of
@@ -415,10 +413,10 @@ viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTra
                 (\n ->
                     let
                         current =
-                            sumToTerm memoizedConstantsDict n time
+                            sumToTerm memoizedConstants n time
 
                         distanceToNext =
-                            (Complex.toPolar (term memoizedConstantsDict (n + 1) time)).abs
+                            (Complex.toPolar (term memoizedConstants (n + 1) time)).abs
                     in
                     --Don't bother drawing the vector if the magnitued is too small
                     if distanceToNext < 0.0001 then
@@ -429,7 +427,7 @@ viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTra
                           makeLine
                             offset
                             current
-                            (sumToTerm memoizedConstantsDict (n + 1) time)
+                            (sumToTerm memoizedConstants (n + 1) time)
                             zoom
 
                         --Draw circle
