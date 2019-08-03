@@ -16,14 +16,17 @@ type FunctionName
     | CustomFunction (Float -> Complex)
 
 
+makeCustomFunction : (Float -> Complex) -> FunctionName
 makeCustomFunction =
     CustomFunction
 
 
+defaultFunction : FunctionName
 defaultFunction =
     StepFunction
 
 
+isCustomFunction : FunctionName -> Bool
 isCustomFunction funName =
     case funName of
         CustomFunction _ ->

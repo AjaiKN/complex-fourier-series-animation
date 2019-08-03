@@ -1,4 +1,4 @@
-module Draw exposing (Model, Msg(..), getFunction, init, update, view)
+module Draw exposing (Model, Msg(..), getFunction, init, main, update, view)
 
 import Array exposing (Array)
 import Browser
@@ -11,13 +11,13 @@ import Json.Decode as Decode
 import Svg exposing (rect, svg)
 import Svg.Attributes exposing (fill, height, viewBox, width, x, y)
 import Svg.Events as Events
-import Time
 
 
 
 --MAIN
 
 
+main : Program () Model Msg
 main =
     Browser.element
         { init = \() -> ( init, Cmd.none )
@@ -139,6 +139,7 @@ view model =
         ]
 
 
+viewText : Bool -> Html msg
 viewText haveStartedDrawing =
     div []
         [ Html.h4
@@ -157,9 +158,11 @@ viewText haveStartedDrawing =
         ]
 
 
+offset : Complex
 offset =
     zero
 
 
+zoom : Float
 zoom =
     2

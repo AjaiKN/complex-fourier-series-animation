@@ -11,10 +11,8 @@ import Html.Attributes exposing (checked, class, id, step, type_, value)
 import Html.Events as Events exposing (onClick, onInput)
 import Html.Lazy
 import Json.Decode as Decode
-import Svg exposing (Svg, circle, line, polygon, rect, svg)
-import Svg.Attributes exposing (cx, cy, fill, height, points, r, stroke, strokeWidth, viewBox, width, x, x1, x2, y, y1, y2)
-import Task
-import Time
+import Svg exposing (Svg, circle, line, rect, svg)
+import Svg.Attributes exposing (cx, cy, fill, height, r, stroke, strokeWidth, viewBox, width, x, x1, x2, y, y1, y2)
 
 
 
@@ -349,6 +347,7 @@ functionDropdown isCustomFunction =
         ]
 
 
+functionNameStrToMsg : String -> Msg
 functionNameStrToMsg str =
     case str of
         "SwitchToDrawMode" ->
@@ -361,7 +360,7 @@ functionNameStrToMsg str =
 viewAnimation : Model -> Html Msg
 viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTracedShape, memoizedConstants, memoizedEstimatedFunctionValuesList, memoizedIntendedFunctionValuesList } as model) =
     let
-        { speed, numVectors, zoom } =
+        { numVectors, zoom } =
             getOptions model
 
         finalPoint =

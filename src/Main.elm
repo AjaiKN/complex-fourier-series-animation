@@ -48,10 +48,10 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( NormalMsg Normal.SwitchToDrawMode, NormalModel mod ) ->
+        ( NormalMsg Normal.SwitchToDrawMode, NormalModel _ ) ->
             ( DrawModel Draw.init, Cmd.none )
 
-        ( DrawMsg (Draw.SwitchToNormalModel points), DrawModel mod ) ->
+        ( DrawMsg (Draw.SwitchToNormalModel points), DrawModel _ ) ->
             let
                 updateIt : Normal.Model -> Normal.Model
                 updateIt =
@@ -84,7 +84,7 @@ subscriptions model =
             Normal.subscriptions mod
                 |> Sub.map NormalMsg
 
-        DrawModel mod ->
+        DrawModel _ ->
             Sub.none
 
 

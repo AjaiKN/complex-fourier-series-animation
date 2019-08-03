@@ -6,6 +6,7 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 
 
+rangeForPlottingFunctions : List Float
 rangeForPlottingFunctions =
     List.map (toFloat >> (*) (1 / 1000)) (List.range 0 1000)
 
