@@ -1,10 +1,11 @@
 module FunctionName exposing (FunctionName, defaultFunction, fromString, getFunction, isCustomFunction, makeCustomFunction)
 
+{-| Represents all the possible functions in the "Function: " dropdown.
+-}
+
 import Complex exposing (..)
 
 
-{-| All the possible functions in the dropdown.
--}
 type FunctionName
     = SquareFunction
     | CosFunction

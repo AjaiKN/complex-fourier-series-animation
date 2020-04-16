@@ -1,5 +1,10 @@
 module Main exposing (main)
 
+{-| This module is for switching back and forth between the Normal
+state (in the Normal module) and the Drawing state (in the Drawing
+model).
+-}
+
 import Browser
 import Draw
 import FunctionName
@@ -51,12 +56,12 @@ update msg model =
         ( NormalMsg Normal.SwitchToDrawMode, NormalModel _ ) ->
             ( DrawModel Draw.init, Cmd.none )
 
-        ( DrawMsg (Draw.SwitchToNormalModel points), DrawModel _ ) ->
+        ( DrawMsg (Draw.UserClickedSecondTimeToSwitchToNormalMode points), DrawModel _ ) ->
             let
                 updateIt : Normal.Model -> Normal.Model
                 updateIt =
                     Normal.update
-                        (Normal.ChangeFunction <| FunctionName.makeCustomFunction <| Draw.getFunction points)
+                        (Normal.FunctionDropdownChanged <| FunctionName.makeCustomFunction <| Draw.getFunction points)
                         >> Tuple.first
             in
             Normal.init () |> Tuple.mapBoth (updateIt >> NormalModel) (Cmd.map NormalMsg)

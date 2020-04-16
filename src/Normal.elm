@@ -1,5 +1,9 @@
 module Normal exposing (Model, Msg(..), init, main, subscriptions, update, view)
 
+{-| This module controls the page during the Normal mode (whenever you're not drawing the
+custom function).
+-}
+
 import Browser
 import Browser.Events
 import Complex exposing (..)
@@ -52,7 +56,7 @@ type alias Model =
     , speed : String
     , numVectors : String
     , zoom : String
-    , followFinalPoint : Offsetting
+    , offsetting : Offsetting
     , functionName : FunctionName
     , showCircles : Bool
     , showIntendedShape : Bool
@@ -65,6 +69,10 @@ type alias Model =
     }
 
 
+{-| Either
+(1) we're following the final point, or
+(2) we're not, and the user can drag around to change the coordinate offset.
+-}
 type Offsetting
     = FollowFinalPoint
     | ConstantOffset Complex
@@ -86,7 +94,7 @@ init _ =
       , speed = "8"
       , numVectors = String.fromFloat numVectors
       , zoom = "2"
-      , followFinalPoint = ConstantOffset zero
+      , offsetting = ConstantOffset zero
       , functionName = defaultFunction
       , showCircles = True
       , showIntendedShape = True
@@ -105,17 +113,17 @@ init _ =
 
 type Msg
     = NoOp
-    | Tick Float
-    | Speed String
-    | NumVectors String
-    | Zoom String
-    | ToggleFollowFinalPoint
-    | ChangeFunction FunctionName
-    | ToggleShowCircles
-    | ToggleShowIntendedShape
-    | ToggleShowTracedShape
+    | AnimationFrameTick Float
+    | SpeedInputChanged String
+    | NumVectorsInputChanged String
+    | ZoomInputChanged String
+    | FollowFinalPointCheckboxToggled
+    | FunctionDropdownChanged FunctionName
+    | ShowCirclesCheckboxToggled
+    | ShowIntendedShapeCheckboxToggled
+    | ShowTracedShapeCheckboxToggled
     | SwitchToDrawMode
-    | ChangeOffsetBy Float Float
+    | MouseDraggedToChangeOffsetBy Float Float
     | ZoomIn
     | ZoomOut
 
@@ -124,7 +132,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ( case msg of
         -- deltaTime is time in seconds since previous frame
-        Tick deltaTime ->
+        AnimationFrameTick deltaTime ->
             let
                 { speed } =
                     getOptions model
@@ -133,10 +141,10 @@ update msg model =
                 | time = model.time + speed / 60 / 1000 * deltaTime
             }
 
-        Speed s ->
+        SpeedInputChanged s ->
             { model | speed = s }
 
-        NumVectors s ->
+        NumVectorsInputChanged s ->
             let
                 newMod =
                     { model
@@ -150,13 +158,13 @@ update msg model =
                 | memoizedEstimatedFunctionValuesList = getMemoizedEstimatedFunctionValuesList model.memoizedConstants numVectors
             }
 
-        Zoom s ->
+        ZoomInputChanged s ->
             { model | zoom = s }
 
-        ToggleFollowFinalPoint ->
+        FollowFinalPointCheckboxToggled ->
             { model
-                | followFinalPoint =
-                    case model.followFinalPoint of
+                | offsetting =
+                    case model.offsetting of
                         FollowFinalPoint ->
                             ConstantOffset zero
 
@@ -164,16 +172,16 @@ update msg model =
                             FollowFinalPoint
             }
 
-        ToggleShowCircles ->
+        ShowCirclesCheckboxToggled ->
             { model | showCircles = not model.showCircles }
 
-        ToggleShowIntendedShape ->
+        ShowIntendedShapeCheckboxToggled ->
             { model | showIntendedShape = not model.showIntendedShape }
 
-        ToggleShowTracedShape ->
+        ShowTracedShapeCheckboxToggled ->
             { model | showTracedShape = not model.showTracedShape }
 
-        ChangeFunction functionName ->
+        FunctionDropdownChanged functionName ->
             let
                 { numVectors } =
                     getOptions model
@@ -189,8 +197,8 @@ update msg model =
                 , memoizedIntendedFunctionValuesList = getMemoizedIntendedFunctionValuesList functionName
             }
 
-        ChangeOffsetBy re im ->
-            case model.followFinalPoint of
+        MouseDraggedToChangeOffsetBy re im ->
+            case model.offsetting of
                 FollowFinalPoint ->
                     model
 
@@ -200,7 +208,7 @@ update msg model =
                             getOptions model
                     in
                     { model
-                        | followFinalPoint =
+                        | offsetting =
                             ConstantOffset <|
                                 add offset <|
                                     complex
@@ -236,30 +244,21 @@ update msg model =
 -- SUBSCRIPTIONS
 
 
-{-| Send a Tick message every millisecondsPerFrame milliseconds.
--}
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Browser.Events.onAnimationFrameDelta Tick
+        [ Browser.Events.onAnimationFrameDelta AnimationFrameTick
         , Browser.Events.onKeyDown <|
             Decode.map
                 (\s ->
-                    case s of
-                        "=" ->
-                            ZoomIn
+                    if List.member s [ "=", "+", "i" ] then
+                        ZoomIn
 
-                        "+" ->
-                            ZoomIn
+                    else if List.member s [ "-", "_", "o" ] then
+                        ZoomOut
 
-                        "-" ->
-                            ZoomOut
-
-                        "_" ->
-                            ZoomOut
-
-                        _ ->
-                            NoOp
+                    else
+                        NoOp
                 )
                 (Decode.field "key" Decode.string)
         ]
@@ -270,19 +269,19 @@ subscriptions _ =
 
 
 view : Model -> Html Msg
-view ({ speed, numVectors, zoom, followFinalPoint, showCircles, showIntendedShape, showTracedShape, functionName } as model) =
+view ({ speed, numVectors, zoom, offsetting, showCircles, showIntendedShape, showTracedShape, functionName } as model) =
     let
         isCustomFunction =
             FunctionName.isCustomFunction functionName
     in
     div []
-        [ Html.Lazy.lazy8 viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape showTracedShape isCustomFunction
+        [ Html.Lazy.lazy8 viewInputs speed numVectors zoom offsetting showCircles showIntendedShape showTracedShape isCustomFunction
         , viewAnimation model
         ]
 
 
 viewInputs : String -> String -> String -> Offsetting -> Bool -> Bool -> Bool -> Bool -> Html Msg
-viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape showTracedShape isCustomFunction =
+viewInputs speed numVectors zoom offsetting showCircles showIntendedShape showTracedShape isCustomFunction =
     divClass "row"
         [ divClass "col"
             [ functionDropdown isCustomFunction
@@ -295,23 +294,23 @@ viewInputs speed numVectors zoom followFinalPoint showCircles showIntendedShape 
                         "Draw your own function!"
                     )
                 ]
-            , numInputWithSlider NumVectors numVectors "0" "100" "1" <| colorText "red" "Number of spinning vectors (max = 100)"
+            , numInputWithSlider NumVectorsInputChanged numVectors "0" "100" "1" <| colorText "red" "Number of spinning vectors (max = 100)"
             , p [] [ text "Try starting with one ", colorText "red" "vector ", text "and increasing one at a time." ]
             ]
         , divClass "col"
-            [ numInputWithSlider Speed speed "0" "20" "any" <| text "Speed (cycles per minute)"
-            , numInputWithSlider Zoom zoom "0.001" "3" "any" <|
+            [ numInputWithSlider SpeedInputChanged speed "0" "20" "any" <| text "Speed (cycles per minute)"
+            , numInputWithSlider ZoomInputChanged zoom "0.001" "3" "any" <|
                 div []
                     [ text "Zoom"
                     , Html.button [ class "mx-1", onClick ZoomIn ] [ text "+" ]
                     , Html.button [ class "mx-1", onClick ZoomOut ] [ text "-" ]
                     ]
-            , checkbox ToggleFollowFinalPoint (followFinalPoint == FollowFinalPoint) "green" "Follow green point (This might slow down some devices if you're showing intended or traced shapes.)"
+            , checkbox FollowFinalPointCheckboxToggled (offsetting == FollowFinalPoint) "green" "Follow green point (This might slow down some devices if you're showing intended or traced shapes.)"
             ]
         , divClass "col"
-            [ checkbox ToggleShowCircles showCircles "orange" "Show orange circles"
-            , checkbox ToggleShowIntendedShape showIntendedShape "green" "Show intended shape (green curve)"
-            , checkbox ToggleShowTracedShape showTracedShape "blue" "Show traced shape (blue curve)"
+            [ checkbox ShowCirclesCheckboxToggled showCircles "orange" "Show orange circles"
+            , checkbox ShowIntendedShapeCheckboxToggled showIntendedShape "green" "Show intended shape (green curve)"
+            , checkbox ShowTracedShapeCheckboxToggled showTracedShape "blue" "Show traced shape (blue curve)"
             ]
         ]
 
@@ -354,11 +353,11 @@ functionNameStrToMsg str =
             SwitchToDrawMode
 
         _ ->
-            ChangeFunction (FunctionName.fromString str)
+            FunctionDropdownChanged (FunctionName.fromString str)
 
 
 viewAnimation : Model -> Html Msg
-viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTracedShape, memoizedConstants, memoizedEstimatedFunctionValuesList, memoizedIntendedFunctionValuesList } as model) =
+viewAnimation ({ time, offsetting, showCircles, showIntendedShape, showTracedShape, memoizedConstants, memoizedEstimatedFunctionValuesList, memoizedIntendedFunctionValuesList } as model) =
     let
         { numVectors, zoom } =
             getOptions model
@@ -367,7 +366,7 @@ viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTra
             sumToTerm memoizedConstants numVectors time
 
         offset =
-            case followFinalPoint of
+            case offsetting of
                 FollowFinalPoint ->
                     finalPoint
 
@@ -379,14 +378,14 @@ viewAnimation ({ time, followFinalPoint, showCircles, showIntendedShape, showTra
         , width "100%"
         , height "2000"
         , id
-            (if followFinalPoint == FollowFinalPoint then
+            (if offsetting == FollowFinalPoint then
                 "svg"
 
              else
                 "draggable-svg"
             )
         , Events.on "svgdrag" <|
-            Decode.map2 ChangeOffsetBy
+            Decode.map2 MouseDraggedToChangeOffsetBy
                 (Decode.at [ "detail", "x" ] Decode.float)
                 (Decode.at [ "detail", "y" ] Decode.float)
         ]

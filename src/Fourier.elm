@@ -1,5 +1,9 @@
 module Fourier exposing (MemoizedConstants, getMemoizedConstants, sumToTerm, term)
 
+{-| Do the Fourier transform calculations needed for calculating the
+vector positions.
+-}
+
 import Array exposing (Array)
 import Complex exposing (..)
 import FunctionName exposing (FunctionName, getFunction)

@@ -1,5 +1,8 @@
 module Draw exposing (Model, Msg(..), getFunction, init, main, update, view)
 
+{-| This module controls the page when you're drawing the custom function.
+-}
+
 import Array exposing (Array)
 import Browser
 import Complex exposing (..)
@@ -37,8 +40,8 @@ type Model
 
 
 type alias DrawingModel =
-    { points : Array Complex
-    }
+    -- Array of points drawn
+    Array Complex
 
 
 init : Model
@@ -51,31 +54,30 @@ init =
 
 
 type Msg
-    = NewPoint Float Float
-    | SwitchToNormalModel (Array Complex)
-    | StartDrawing
+    = UserClickedOnceToStartDrawing
+    | MouseMovedToDrawPoint Float Float
+    | UserClickedSecondTimeToSwitchToNormalMode DrawingModel
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ( case ( msg, model ) of
-        ( NewPoint re im, Drawing mod ) ->
-            Drawing
-                { mod
-                    | points =
-                        Array.push
-                            (complex
-                                (coordTransformInverse 0 zoom re)
-                                (coordTransformInverse 0 zoom im)
-                            )
-                            mod.points
-                }
+        --Add point to points array
+        ( MouseMovedToDrawPoint re im, Drawing points ) ->
+            Drawing <|
+                Array.push
+                    (complex
+                        (coordTransformInverse 0 zoom re)
+                        (coordTransformInverse 0 zoom im)
+                    )
+                    points
 
-        ( StartDrawing, HaventStartedYet ) ->
-            Drawing (DrawingModel Array.empty)
+        --Start drawing
+        ( UserClickedOnceToStartDrawing, HaventStartedYet ) ->
+            Drawing Array.empty
 
         --Handled in Main
-        ( SwitchToNormalModel _, Drawing _ ) ->
+        ( UserClickedSecondTimeToSwitchToNormalMode _, Drawing _ ) ->
             model
 
         _ ->
@@ -84,7 +86,10 @@ update msg model =
     )
 
 
-getFunction : Array Complex -> Float -> Complex
+{-| Converts a DrawingModel to a function that takes a Float from
+0 to 1.
+-}
+getFunction : DrawingModel -> Float -> Complex
 getFunction array =
     let
         len =
@@ -115,23 +120,23 @@ view model =
             , width "100%"
             , height "2000"
             , Events.on "svgmousemove" <|
-                Decode.map2 NewPoint
+                Decode.map2 MouseMovedToDrawPoint
                     (Decode.at [ "detail", "x" ] Decode.float)
                     (Decode.at [ "detail", "y" ] Decode.float)
             , id "drawable-svg"
             , Events.onClick <|
                 case model of
                     HaventStartedYet ->
-                        StartDrawing
+                        UserClickedOnceToStartDrawing
 
-                    Drawing mod ->
-                        SwitchToNormalModel mod.points
+                    Drawing points ->
+                        UserClickedSecondTimeToSwitchToNormalMode points
             ]
             [ --rectangle to create black background
               rect [ fill "black", x "-100", y "-100", width "500", height "500" ] []
             , case model of
-                Drawing mod ->
-                    plotPoints "green" offset zoom (Array.toList mod.points)
+                Drawing points ->
+                    plotPoints "green" offset zoom (Array.toList points)
 
                 HaventStartedYet ->
                     div [] []
@@ -156,6 +161,10 @@ viewText haveStartedDrawing =
         , p [ Html.Attributes.style "text-align" "center" ]
             [ text "(This probably won't work on touch devices)" ]
         ]
+
+
+
+-- CONSTANTS
 
 
 offset : Complex

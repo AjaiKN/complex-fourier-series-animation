@@ -1,5 +1,8 @@
 module Helpers exposing (coordTransform, coordTransformInverse, distTransform, distTransformInverse, plotPoints, rangeForPlottingFunctions)
 
+{-| Helper functions needed in other modules.
+-}
+
 import Complex exposing (..)
 import Html
 import Svg exposing (..)
